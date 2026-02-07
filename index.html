@@ -30,24 +30,24 @@
     </div>
     <label>Масштаб поля:</label>
     <input type="range" id="zoom" min="0.4" max="1.5" step="0.05" value="1" oninput="update(true)">
-    <label>Настройка фона (URL или цвет):</label>
-    <input type="text" id="bg" placeholder="URL картинки или #цвет" oninput="update()">
+    <label>Настройка фона (URL, цвет или градиент):</label>
+    <input type="text" id="bg" placeholder="URL, #цвет или linear-gradient(...)" oninput="update()">
     <label>Размытие фона:</label>
     <input type="range" id="blur" min="0" max="20" step="1" value="0" oninput="update()">
     <div class="check-group">
-        <div class="check-row"><input type="checkbox" id="neonT" checked onchange="update()"><label style="margin:0">Неон для ТЕКСТА</label></div>
-        <div class="check-row"><input type="checkbox" id="neonB" checked onchange="update()"><label style="margin:0">Неон для ОБВОДКИ</label></div>
+        <div class="check-row"><input type="checkbox" id="neonT" checked onchange="update()"><label style="margin:0">неон для текста</label></div>
+        <div class="check-row"><input type="checkbox" id="neonB" checked onchange="update()"><label style="margin:0">неон для обводки</label></div>
     </div>
-    <label>Слова/URL (горизонталь):</label>
+    <label>Слова или url картинки по горизонтали (пишем через запятую):</label>
     <textarea id="x" rows="2" oninput="update()">I, You, She, We, They</textarea>
-    <label>Слова/URL (вертикаль):</label>
+    <label>Слова или url картинки по вертикали (пишем через запятую):</label>
     <textarea id="y" rows="2" oninput="update()">play, go, sleep</textarea>
-    <label>Кол-во целей и URL картинки цели:</label>
+    <label>Количество объектов и URL картинки объекта (если пусто, то будет корабли):</label>
     <div class="row">
         <input type="number" id="s" value="3" style="width:60px" oninput="update()">
-        <input type="text" id="targetImg" placeholder="URL картинки цели" oninput="update()">
+        <input type="text" id="targetImg" placeholder="URL картинки объекта" oninput="update()">
     </div>
-    <label>Финальный фидбек (Текст и URL фото):</label>
+    <label>Финальный фидбек (текст и URL фото - при желании):</label>
     <input type="text" id="winT" value="ПОБЕДА!" oninput="update()">
     <input type="text" id="winI" placeholder="URL картинки финала" oninput="update()">
     <button onclick="copyCode()">СКОПИРОВАТЬ КОД ДЛЯ GENIALLY</button>
