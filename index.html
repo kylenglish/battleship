@@ -2,30 +2,29 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Редактор от @kylenglish</title>
+    <title>Редактор Sea Battle</title>
     <style>
         :root { --main: #00d4ff; }
-        body { font-family: 'Segoe UI', sans-serif; background: #0a192f; color: white; display: flex; gap: 20px; padding: 20px; margin: 0; }
-        .panel { width: 400px; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; border: 1px solid var(--main); height: 95vh; overflow-y: auto; }
-        .preview { flex-grow: 1; background: #000; border-radius: 15px; height: 95vh; overflow: hidden; }
-        h2 { color: var(--main); margin: 0 0 20px; font-size: 1.1rem; text-align: center; }
-        label { display: block; margin-top: 12px; font-size: 0.75rem; color: #aaa; }
-        input, select, textarea { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #333; background: #1a2a3a; color: white; margin-top: 4px; box-sizing: border-box; }
+        body { font-family: sans-serif; background: #0a192f; color: white; display: flex; gap: 20px; padding: 20px; margin: 0; height: 100vh; }
+        .panel { width: 380px; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; border: 1px solid var(--main); overflow-y: auto; }
+        .preview { flex-grow: 1; background: #000; border-radius: 15px; overflow: hidden; }
+        label { display: block; margin-top: 15px; font-size: 0.8rem; color: #aaa; }
+        input, select, textarea { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #333; background: #1a2a3a; color: white; margin-top: 5px; box-sizing: border-box; }
         .row { display: flex; gap: 10px; }
-        .check-row { display: flex; align-items: center; gap: 10px; margin-top: 15px; }
-        .check-row input { width: auto; margin: 0; cursor: pointer; }
-        button { width: 100%; padding: 12px; background: var(--main); border: none; border-radius: 8px; color: #0a192f; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        .check-group { background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; margin-top: 15px; }
+        .check-row { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
+        .check-row input { width: auto; margin: 0; }
+        button { width: 100%; padding: 12px; background: var(--main); border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px; }
         iframe { width: 100%; height: 100%; border: none; }
-        input[type="range"] { cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="panel">
-    <h2>Редактор "Морской бой" от @kylenglish</h2>
+    <h2 style="color:var(--main); text-align:center; margin-top:0;">Редактор "Морской бой"</h2>
     
     <label>Заголовок игры:</label>
-    <input type="text" id="t" value="Sea Battle" oninput="update()">
+    <input type="text" id="t" value="МОРСКОЙ БОЙ" oninput="update()">
 
     <div class="row">
         <div style="flex:1">
@@ -33,43 +32,38 @@
             <input type="color" id="c" value="#00d4ff" oninput="update()">
         </div>
         <div style="flex:1">
-            <label>Цвет надписей:</label>
+            <label>Цвет текста:</label>
             <input type="color" id="fColor" value="#ffffff" oninput="update()">
         </div>
     </div>
 
-    <label>Масштаб поля (размер):</label>
-    <input type="range" id="zoom" min="0.5" max="2" step="0.1" value="1" oninput="update()">
+    <label>Масштаб поля:</label>
+    <input type="range" id="zoom" min="0.4" max="1.5" step="0.05" value="1" oninput="update()">
 
-    <div class="check-row">
-        <input type="checkbox" id="neon" checked onchange="update()">
-        <label>Включить неоновую подсветку</label>
+    <div class="check-group">
+        <div class="check-row">
+            <input type="checkbox" id="neonT" checked onchange="update()">
+            <label style="margin:0">Неон для ТЕКСТА</label>
+        </div>
+        <div class="check-row">
+            <input type="checkbox" id="neonB" checked onchange="update()">
+            <label style="margin:0">Неон для ОБВОДКИ</label>
+        </div>
     </div>
 
-    <label>Шрифт:</label>
-    <select id="font" onchange="update()">
-        <option value="PT Sans">PT Sans</option>
-        <option value="Lobster">Lobster</option>
-        <option value="Rubik">Rubik</option>
-        <option value="Montserrat">Montserrat</option>
-    </select>
-
-    <label>Фон (Цвет или ссылка):</label>
-    <input type="text" id="bg" placeholder="#0a192f или ссылка" oninput="update()">
-
-    <label>Кол-во целей:</label>
-    <input type="number" id="s" value="3" oninput="update()">
-
-    <label>Что ищем (URL картинки):</label>
-    <input type="text" id="targetImg" oninput="update()">
-
-    <label>Слова/URL по горизонтали:</label>
+    <label>Слова/URL (горизонталь):</label>
     <textarea id="x" rows="2" oninput="update()">I, You, She, We, They</textarea>
 
-    <label>Слова/URL по вертикали:</label>
+    <label>Слова/URL (вертикаль):</label>
     <textarea id="y" rows="2" oninput="update()">play, go, sleep</textarea>
 
-    <button onclick="copyCode()">СКОПИРОВАТЬ КОД</button>
+    <label>Кол-во целей и URL картинки цели:</label>
+    <div class="row">
+        <input type="number" id="s" value="3" style="width:60px" oninput="update()">
+        <input type="text" id="targetImg" placeholder="URL картинки цели" oninput="update()">
+    </div>
+
+    <button onclick="copyCode()">СКОПИРОВАТЬ КОД ДЛЯ GENIALLY</button>
 </div>
 
 <div class="preview" id="previewContainer"></div>
@@ -83,10 +77,8 @@
             c: document.getElementById('c').value,
             s: parseInt(document.getElementById('s').value),
             targetImg: document.getElementById('targetImg').value,
-            font: document.getElementById('font').value,
-            bg: document.getElementById('bg').value || "#0a192f",
-            neon: document.getElementById('neon').checked,
-            fSize: 16,
+            neonT: document.getElementById('neonT').checked,
+            neonB: document.getElementById('neonB').checked,
             fColor: document.getElementById('fColor').value,
             zoom: document.getElementById('zoom').value
         };
@@ -102,7 +94,7 @@
         const url = document.querySelector('iframe').src;
         const code = `<iframe src="${url}" width="100%" height="600px" style="border:0;" allowfullscreen="true"></iframe>`;
         navigator.clipboard.writeText(code);
-        alert("Код скопирован!");
+        alert("Код для Genially скопирован!");
     }
 
     window.onload = update;
