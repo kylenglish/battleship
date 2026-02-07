@@ -2,90 +2,77 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Mega Editor by @kylenglish</title>
+    <title>Редактор от @kylenglish</title>
     <style>
         :root { --main: #00d4ff; }
-        body { font-family: 'Segoe UI', sans-serif; background: #0a192f; color: white; display: flex; gap: 20px; padding: 20px; }
-        .panel { width: 450px; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; border: 1px solid var(--main); max-height: 90vh; overflow-y: auto; }
-        .preview { flex-grow: 1; background: white; border-radius: 15px; height: 90vh; position: sticky; top: 20px; overflow: hidden; }
-        h2 { color: var(--main); margin-top: 0; font-size: 1.2rem; text-align: center; }
-        label { display: block; margin-top: 10px; font-size: 0.8rem; color: #ccc; }
-        input, select, textarea { width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #333; background: #1a2a3a; color: white; margin-top: 4px; box-sizing: border-box; }
-        .row { display: flex; gap: 10px; align-items: flex-end; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0a192f; color: white; display: flex; gap: 20px; padding: 20px; margin: 0; }
+        .panel { width: 400px; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; border: 1px solid var(--main); height: 95vh; overflow-y: auto; }
+        .preview { flex-grow: 1; background: #000; border-radius: 15px; height: 95vh; overflow: hidden; }
+        h2 { color: var(--main); margin: 0 0 20px; font-size: 1.1rem; text-align: center; }
+        label { display: block; margin-top: 12px; font-size: 0.75rem; color: #aaa; }
+        input, select, textarea { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #333; background: #1a2a3a; color: white; margin-top: 4px; box-sizing: border-box; }
+        .row { display: flex; gap: 10px; }
         .check-row { display: flex; align-items: center; gap: 10px; margin-top: 15px; }
-        .check-row input { width: auto; margin: 0; }
+        .check-row input { width: auto; margin: 0; cursor: pointer; }
         button { width: 100%; padding: 12px; background: var(--main); border: none; border-radius: 8px; color: #0a192f; font-weight: bold; cursor: pointer; margin-top: 20px; }
         iframe { width: 100%; height: 100%; border: none; }
+        input[type="range"] { cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="panel">
-    <h2>🎨 Редактор "Морской бой" от @kylenglish</h2>
+    <h2>Редактор "Морской бой" от @kylenglish</h2>
     
     <label>Заголовок игры:</label>
     <input type="text" id="t" value="Sea Battle" oninput="update()">
 
-    <label>Режим игры:</label>
-    <select id="mode" onchange="update()">
-        <option value="classic">Classic (Просто клики)</option>
-        <option value="writing">Writing (Ввод ответа перед выстрелом)</option>
-        <option value="challenge">Challenge (На время - скоро!)</option>
-    </select>
-
     <div class="row">
         <div style="flex:1">
-            <label>Шрифт:</label>
-            <select id="font" onchange="update()">
-                <option value="PT Sans">PT Sans</option>
-                <option value="Lobster">Lobster</option>
-                <option value="Rubik">Rubik</option>
-                <option value="Montserrat">Montserrat</option>
-            </select>
-        </div>
-        <div style="flex:1">
-            <label>Размер:</label>
-            <input type="number" id="fSize" value="16" oninput="update()">
-        </div>
-    </div>
-
-    <div class="row">
-        <div style="flex:1">
-            <label>Цвет интерфейса:</label>
+            <label>Цвет обводки:</label>
             <input type="color" id="c" value="#00d4ff" oninput="update()">
         </div>
         <div style="flex:1">
-            <label>Цвет шрифта:</label>
+            <label>Цвет надписей:</label>
             <input type="color" id="fColor" value="#ffffff" oninput="update()">
         </div>
     </div>
 
-    <label>Фон (Цвет или ссылка на фото):</label>
-    <input type="text" id="bg" placeholder="#0a192f или https://..." oninput="update()">
+    <label>Масштаб поля (размер):</label>
+    <input type="range" id="zoom" min="0.5" max="2" step="0.1" value="1" oninput="update()">
 
     <div class="check-row">
         <input type="checkbox" id="neon" checked onchange="update()">
-        <label style="margin:0">Включить неоновую подсветку</label>
+        <label>Включить неоновую подсветку</label>
     </div>
 
-    <label>Количество целей (кораблей):</label>
+    <label>Шрифт:</label>
+    <select id="font" onchange="update()">
+        <option value="PT Sans">PT Sans</option>
+        <option value="Lobster">Lobster</option>
+        <option value="Rubik">Rubik</option>
+        <option value="Montserrat">Montserrat</option>
+    </select>
+
+    <label>Фон (Цвет или ссылка):</label>
+    <input type="text" id="bg" placeholder="#0a192f или ссылка" oninput="update()">
+
+    <label>Кол-во целей:</label>
     <input type="number" id="s" value="3" oninput="update()">
 
-    <label>Что ищем (URL картинки цели):</label>
-    <input type="text" id="targetImg" placeholder="Пусто = кораблик" oninput="update()">
+    <label>Что ищем (URL картинки):</label>
+    <input type="text" id="targetImg" oninput="update()">
 
-    <label>Горизонталь (Слова или URL картинок через запятую):</label>
+    <label>Слова/URL по горизонтали:</label>
     <textarea id="x" rows="2" oninput="update()">I, You, She, We, They</textarea>
 
-    <label>Вертикаль (Слова или URL картинок через запятую):</label>
+    <label>Слова/URL по вертикали:</label>
     <textarea id="y" rows="2" oninput="update()">play, go, sleep</textarea>
 
-    <button onclick="copyCode()">СКОПИРОВАТЬ КОД ДЛЯ GENIALLY</button>
-    <textarea id="output" style="height:50px; margin-top:10px; font-size:10px;" readonly></textarea>
+    <button onclick="copyCode()">СКОПИРОВАТЬ КОД</button>
 </div>
 
-<div class="preview" id="previewContainer">
-    </div>
+<div class="preview" id="previewContainer"></div>
 
 <script>
     function getData() {
@@ -98,10 +85,10 @@
             targetImg: document.getElementById('targetImg').value,
             font: document.getElementById('font').value,
             bg: document.getElementById('bg').value || "#0a192f",
-            mode: document.getElementById('mode').value,
             neon: document.getElementById('neon').checked,
-            fSize: document.getElementById('fSize').value,
-            fColor: document.getElementById('fColor').value
+            fSize: 16,
+            fColor: document.getElementById('fColor').value,
+            zoom: document.getElementById('zoom').value
         };
     }
 
@@ -109,14 +96,13 @@
         const data = btoa(unescape(encodeURIComponent(JSON.stringify(getData()))));
         const url = `https://kylenglish.github.io/battleship/play.html?data=${data}`;
         document.getElementById('previewContainer').innerHTML = `<iframe src="${url}"></iframe>`;
-        document.getElementById('output').value = `<iframe src="${url}" width="100%" height="600px" style="border:0;" allowfullscreen="true"></iframe>`;
     }
 
     function copyCode() {
-        const out = document.getElementById('output');
-        out.select();
-        document.execCommand('copy');
-        alert("Код скопирован! Вставьте его в Genially через Insert -> Others");
+        const url = document.querySelector('iframe').src;
+        const code = `<iframe src="${url}" width="100%" height="600px" style="border:0;" allowfullscreen="true"></iframe>`;
+        navigator.clipboard.writeText(code);
+        alert("Код скопирован!");
     }
 
     window.onload = update;
