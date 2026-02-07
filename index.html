@@ -11,11 +11,12 @@
         label { display: block; margin-top: 15px; font-size: 0.8rem; color: #aaa; }
         input, select, textarea { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #333; background: #1a2a3a; color: white; margin-top: 5px; box-sizing: border-box; }
         .row { display: flex; gap: 10px; }
-        .check-group { background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; margin-top: 15px; }
+        .check-group { background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; margin-top: 10px; }
         .check-row { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
         .check-row input { width: auto; margin: 0; }
         button { width: 100%; padding: 12px; background: var(--main); border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px; }
         iframe { width: 100%; height: 100%; border: none; }
+        #copyStatus { color: #00ff00; font-size: 0.8rem; text-align: center; margin-top: 5px; display: none; }
     </style>
 </head>
 <body>
@@ -24,33 +25,45 @@
     <h2 style="color:var(--main); text-align:center; margin-top:0;">Редактор "Морской бой"</h2>
     <label>Заголовок игры:</label>
     <input type="text" id="t" value="МОРСКОЙ БОЙ" oninput="update()">
+    
     <div class="row">
         <div style="flex:1"><label>Цвет обводки:</label><input type="color" id="c" value="#00d4ff" oninput="update()"></div>
         <div style="flex:1"><label>Цвет текста:</label><input type="color" id="fColor" value="#ffffff" oninput="update()"></div>
     </div>
-    <label>Масштаб поля:</label>
-    <input type="range" id="zoom" min="0.4" max="1.5" step="0.05" value="1" oninput="update(true)">
-    <label>Настройка фона (URL, цвет или градиент):</label>
-    <input type="text" id="bg" placeholder="URL, #цвет или linear-gradient(...)" oninput="update()">
-    <label>Размытие фона:</label>
-    <input type="range" id="blur" min="0" max="20" step="1" value="0" oninput="update()">
+
     <div class="check-group">
         <div class="check-row"><input type="checkbox" id="neonT" checked onchange="update()"><label style="margin:0">неон для текста</label></div>
         <div class="check-row"><input type="checkbox" id="neonB" checked onchange="update()"><label style="margin:0">неон для обводки</label></div>
     </div>
-    <label>Слова или url картинки по горизонтали (пишем через запятую):</label>
+
+    <label>Масштаб поля:</label>
+    <input type="range" id="zoom" min="0.4" max="1.5" step="0.05" value="1" oninput="update(true)">
+    
+    <label>Настройка фона (URL, цвет или градиент):</label>
+    <input type="text" id="bg" placeholder="URL, #цвет или linear-gradient(...)" oninput="update()">
+    
+    <label>Размытие фона:</label>
+    <input type="range" id="blur" min="0" max="20" step="1" value="0" oninput="update()">
+    
+    <label>Слова или url картинки по горизонтали (через запятую):</label>
     <textarea id="x" rows="2" oninput="update()">I, You, She, We, They</textarea>
-    <label>Слова или url картинки по вертикали (пишем через запятую):</label>
+    
+    <label>Слова или url картинки по вертикали (через запятую):</label>
     <textarea id="y" rows="2" oninput="update()">play, go, sleep</textarea>
-    <label>Количество объектов и URL картинки объекта (если пусто, то будет корабли):</label>
+    
+    <label>Кол-во объектов и URL картинки объекта (пусто = корабли):</label>
     <div class="row">
         <input type="number" id="s" value="3" style="width:60px" oninput="update()">
         <input type="text" id="targetImg" placeholder="URL картинки объекта" oninput="update()">
     </div>
+    
     <label>Финальный фидбек (текст и URL фото - при желании):</label>
     <input type="text" id="winT" value="ПОБЕДА!" oninput="update()">
     <input type="text" id="winI" placeholder="URL картинки финала" oninput="update()">
+    
     <button onclick="copyCode()">СКОПИРОВАТЬ КОД ДЛЯ GENIALLY</button>
+    <div id="copyStatus">Код скопирован в буфер обмена!</div>
+    <textarea id="resCode" rows="3" style="margin-top:10px; font-size:0.7rem; color:#888;" readonly></textarea>
 </div>
 
 <div class="preview" id="previewContainer"></div>
@@ -76,16 +89,23 @@
     }
     function update(isPreviewMode = false) {
         const data = btoa(unescape(encodeURIComponent(JSON.stringify(getData()))));
-        let url = `https://kylenglish.github.io/battleship/play.html?data=${data}`;
+        // Используем относительный путь, чтобы не зависеть от домена в редакторе
+        let url = `play.html?data=${data}`;
         if(isPreviewMode) url += "&preview=true";
         document.getElementById('previewContainer').innerHTML = `<iframe src="${url}"></iframe>`;
+        
+        // Обновляем текстовое поле с кодом сразу
+        const fullUrl = `https://kylenglish.github.io/battleship/play.html?data=${data}`;
+        document.getElementById('resCode').value = `<iframe src="${fullUrl}" width="100%" height="600px" style="border:0;" allowfullscreen="true"></iframe>`;
     }
     function copyCode() {
-        const data = btoa(unescape(encodeURIComponent(JSON.stringify(getData()))));
-        const url = `https://kylenglish.github.io/battleship/play.html?data=${data}`;
-        const code = `<iframe src="${url}" width="100%" height="600px" style="border:0;" allowfullscreen="true"></iframe>`;
-        navigator.clipboard.writeText(code);
-        alert("Код для Genially скопирован!");
+        const codeArea = document.getElementById('resCode');
+        codeArea.select();
+        document.execCommand('copy');
+        
+        const status = document.getElementById('copyStatus');
+        status.style.display = 'block';
+        setTimeout(() => { status.style.display = 'none'; }, 2000);
     }
     window.onload = () => update();
 </script>
