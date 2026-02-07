@@ -54,29 +54,30 @@
     </div>
 
     <script>
-        function generate() {
-            // Исправлено: твой ник теперь вписан
-            const твойЛогин = 'kylenglish'; 
-            
-            const config = {
-                title: document.getElementById('t').value,
-                mode: document.getElementById('m').value,
-                x: document.getElementById('x').value.split(',').map(s => s.trim()),
-                y: document.getElementById('y').value.split(',').map(s => s.trim()),
-                ships: parseInt(document.getElementById('s').value),
-                color: document.getElementById('c').value
-            };
+    function generate() {
+        // Твой ник уже вписан правильно
+        const твойЛогин = 'kylenglish'; 
+        
+        const config = {
+            title: document.getElementById('t').value,
+            mode: document.getElementById('m').value,
+            x: document.getElementById('x').value.split(',').map(s => s.trim()),
+            y: document.getElementById('y').value.split(',').map(s => s.trim()),
+            ships: parseInt(document.getElementById('s').value),
+            color: document.getElementById('c').value
+        };
 
-            const data = btoa(unescape(encodeURIComponent(JSON.stringify(config))));
-            
-            // Ссылка с учетом твоей структуры папок (seabattle/battleship)
-            const playerUrl = `https://${твойЛогин}.github.io/seabattle/battleship/?data=${data}`;
-            
-            const iframeCode = `<iframe src="${playerUrl}" width="100%" height="600px" style="border:0;" allow="autoplay" allowfullscreen="true"></iframe>`;
-            
-            document.getElementById('output').value = iframeCode;
-            document.getElementById('result').style.display = 'block';
-        }
-    </script>
+        const data = btoa(unescape(encodeURIComponent(JSON.stringify(config))));
+        
+        // Ссылка теперь ведет точно в папку battleship
+        const playerUrl = `https://${твойЛогин}.github.io/seabattle/battleship/?data=${data}`;
+        
+        const iframeCode = `<iframe src="${playerUrl}" width="100%" height="600px" style="border:0;" allow="autoplay" allowfullscreen="true"></iframe>`;
+        
+        document.getElementById('output').value = iframeCode;
+        document.getElementById('result').style.display = 'block';
+    }
+</script>
+    
 </body>
 </html>
