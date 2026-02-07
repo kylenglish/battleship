@@ -20,44 +20,32 @@
 <body>
     <div class="box">
         <h2>🚢 Конструктор Игры</h2>
-        
         <label>Название игры:</label>
         <input type="text" id="t" value="Морской Бой">
-        
         <label>Режим игры:</label>
         <select id="m">
             <option value="writing">Writing (ученик пишет ответ)</option>
             <option value="classic">Classic (просто кликает)</option>
         </select>
-
         <label>Слова по горизонтали:</label>
-        <div class="hint">Через запятую: I, You, My friend...</div>
         <textarea id="x" rows="2">I, You, She, We, They</textarea>
-
         <label>Слова по вертикали:</label>
-        <div class="hint">Через запятую: play, sing, dance...</div>
         <textarea id="y" rows="2">play tennis, go to school, sleep</textarea>
-
-        <label>Количество спрятанных кораблей:</label>
-        <input type="number" id="s" value="3" min="1">
-
+        <label>Количество кораблей:</label>
+        <input type="number" id="s" value="3">
         <label>Цвет интерфейса:</label>
         <input type="color" id="c" value="#00d4ff">
 
         <button onclick="generate()">СОЗДАТЬ КОД ДЛЯ GENIALLY</button>
 
         <div id="result">
-            <p style="font-weight:bold; font-size:0.8rem; margin:0;">✅ Код готов! Скопируйте его:</p>
+            <p style="font-weight:bold; font-size:0.8rem;">✅ Код готов! Скопируйте его:</p>
             <textarea id="output" readonly></textarea>
-            <p style="font-size:0.7rem; color:#666; margin-top:10px;">Вставьте этот код в Genially через: <b>Вставка -> Другое (Others)</b></p>
         </div>
     </div>
 
     <script>
     function generate() {
-        const твойЛогин = 'kylenglish'; 
-        const имяРепозитория = 'battleship'; // Исправлено на правильное имя
-        
         const config = {
             title: document.getElementById('t').value,
             mode: document.getElementById('m').value,
@@ -69,10 +57,10 @@
 
         const data = btoa(unescape(encodeURIComponent(JSON.stringify(config))));
         
-        // Ссылка теперь ведет точно по адресу: kylenglish.github.io/battleship/battleship/
-        const playerUrl = `https://${твойЛогин}.github.io/${имяРепозитория}/battleship/?data=${data}`;
+        // ВОТ ЭТА СТРОКА, которую мы меняли:
+        const playerUrl = "https://kylenglish.github.io/battleship/play.html?data=" + data;
         
-        const iframeCode = `<iframe src="${playerUrl}" width="100%" height="600px" style="border:0;" allow="autoplay" allowfullscreen="true"></iframe>`;
+        const iframeCode = `<iframe src="${playerUrl}" width="100%" height="600px" style="border:0;" allowfullscreen="true"></iframe>`;
         
         document.getElementById('output').value = iframeCode;
         document.getElementById('result').style.display = 'block';
