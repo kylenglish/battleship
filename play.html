@@ -6,77 +6,63 @@
     <title>Sea Battle Player</title>
     <link id="fontLink" rel="stylesheet">
     <style>
-        :root { --accent: #00d4ff; --text-color: #ffffff; --scale: 1; }
+        :root { --accent: #00d4ff; --text-color: #ffffff; --scale: 1; --blur: 0px; }
         body { 
             margin: 0; padding: 0; background: #0a192f; color: var(--text-color);
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            min-height: 100vh; overflow-x: hidden; background-size: cover; background-position: center;
+            min-height: 100vh; overflow: hidden; background-size: cover; background-position: center;
         }
+        .bg-overlay { position: fixed; top:0; left:0; right:0; bottom:0; backdrop-filter: blur(var(--blur)); z-index: -1; }
         .neon-text { text-shadow: 0 0 15px var(--text-color); }
         .neon-border { box-shadow: 0 0 15px var(--accent); border-color: var(--accent) !important; }
-        
         #startScreen {
             background: rgba(10, 25, 47, 0.95); border: 2px solid var(--accent);
             border-radius: 20px; padding: 40px; text-align: center; max-width: 80%;
             z-index: 100; transition: 0.3s;
         }
-        
         #gameScreen { display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-        
         .grid-wrapper { transform: scale(var(--scale)); transform-origin: center top; transition: 0.2s; }
-        
-        .grid-container { 
-            display: grid; gap: 10px; padding: 20px;
-            background: rgba(0, 0, 0, 0.3); border: 2px solid var(--accent); border-radius: 15px;
-        }
-        
-        .cell { 
-            width: 80px; height: 80px; background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;
-            display: flex; align-items: center; justify-content: center; cursor: pointer;
-        }
+        .grid-container { display: grid; gap: 10px; padding: 20px; background: rgba(0, 0, 0, 0.3); border: 2px solid var(--accent); border-radius: 15px; }
+        .cell { width: 80px; height: 80px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
         .cell img { width: 80%; height: 80%; object-fit: contain; }
         .header-cell { border: none; background: none; font-weight: bold; color: var(--text-color); cursor: default; }
-        
-        button#startBtn {
-            background: var(--accent); color: #0a192f; border: none;
-            padding: 15px 40px; font-size: 1.2rem; font-weight: bold;
-            border-radius: 10px; cursor: pointer; margin-top: 20px;
-        }
+        button#startBtn { background: var(--accent); color: #0a192f; border: none; padding: 15px 40px; font-size: 1.2rem; font-weight: bold; border-radius: 10px; cursor: pointer; margin-top: 20px; }
+        #winScreen { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:rgba(10,25,47,0.95); border:3px solid var(--accent); padding:30px; border-radius:20px; text-align:center; z-index:1000; box-shadow:0 0 30px var(--accent); }
+        #winScreen img { max-width: 200px; margin-top: 15px; border-radius: 10px; }
     </style>
 </head>
 <body>
-
+    <div class="bg-overlay"></div>
     <div id="startScreen">
         <h1 id="titleDisp">МОРСКОЙ БОЙ</h1>
         <div id="instr" style="text-align:left; line-height:1.6; margin: 20px 0;">
-            • Нажимай на клетки, чтобы найти цели.<br>
-            • Составляй предложения для выстрела.<br>
-            • Найди все скрытые объекты для победы!
+            • Нажимай на клетки, чтобы найти цели.<br>• Составляй предложения для выстрела.<br>• Найди все скрытые объекты для победы!
         </div>
         <button id="startBtn" onclick="startGame()">ИГРАТЬ</button>
     </div>
 
     <div id="gameScreen">
         <div id="statBar" style="margin-bottom:20px; font-weight:bold;">Найденные цели: 0 / 0</div>
-        <div class="grid-wrapper">
-            <div id="grid" class="grid-container"></div>
-        </div>
+        <div class="grid-wrapper"><div id="grid" class="grid-container"></div></div>
+    </div>
+
+    <div id="winScreen">
+        <h2 id="winText" class="neon-text">ПОБЕДА!</h2>
+        <div id="winImgContainer"></div>
+        <button onclick="location.reload()" id="startBtn" style="padding:10px 20px; font-size:0.9rem;">ИГРАТЬ СНОВА</button>
     </div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        let cfg = { t: "Sea Battle", x: [], y: [], c: "#00d4ff", s: 3, zoom: 1, neonT: true, neonB: true, fColor: "#ffffff" };
-
-        if (urlParams.has('data')) {
-            try { cfg = JSON.parse(decodeURIComponent(escape(atob(urlParams.get('data'))))); } catch(e) {}
-        }
+        let cfg = { t: "Sea Battle", x: [], y: [], c: "#00d4ff", s: 3, zoom: 1, neonT: true, neonB: true, fColor: "#ffffff", bg: "", blur: 0, winT: "ПОБЕДА!", winI: "" };
+        if (urlParams.has('data')) { try { cfg = JSON.parse(decodeURIComponent(escape(atob(urlParams.get('data'))))); } catch(e) {} }
 
         const root = document.documentElement;
         root.style.setProperty('--accent', cfg.c);
         root.style.setProperty('--text-color', cfg.fColor);
         root.style.setProperty('--scale', cfg.zoom || 1);
-        
+        root.style.setProperty('--blur', (cfg.blur || 0) + "px");
+
         if (cfg.bg?.startsWith('http')) document.body.style.backgroundImage = `url('${cfg.bg}')`;
         else if (cfg.bg) document.body.style.backgroundColor = cfg.bg;
 
@@ -89,10 +75,11 @@
             document.getElementById('gameScreen').style.display = 'flex';
         }
 
+        if (urlParams.has('preview')) startGame(); // Секретный параметр для редактора
+
         const grid = document.getElementById('grid');
         grid.style.gridTemplateColumns = `repeat(${cfg.x.length + 1}, auto)`;
         if (cfg.neonB) grid.classList.add('neon-border');
-        
         document.getElementById('statBar').innerText = `Найденные цели: 0 / ${cfg.s}`;
         if (cfg.neonT) document.getElementById('statBar').classList.add('neon-text');
 
@@ -106,7 +93,6 @@
                 const cell = document.createElement('div');
                 cell.className = 'cell';
                 const val = (r === 0) ? cfg.x[c-1] : (c === 0 ? cfg.y[r-1] : null);
-                
                 if (r === 0 && c === 0) cell.className += ' header-cell';
                 else if (val !== null) {
                     cell.className += ' header-cell';
@@ -122,14 +108,18 @@
                             if (cfg.neonB) cell.classList.add('neon-border');
                             found++;
                             document.getElementById('statBar').innerText = `Найденные цели: ${found} / ${cfg.s}`;
-                            if (found >= cfg.s) alert("Победа!");
-                        } else {
-                            cell.innerHTML = "✕"; cell.style.opacity = "0.4";
-                        }
+                            if (found >= cfg.s) showWin();
+                        } else { cell.innerHTML = "✕"; cell.style.opacity = "0.4"; }
                     };
                 }
                 grid.appendChild(cell);
             }
+        }
+        function showWin() {
+            const ws = document.getElementById('winScreen');
+            document.getElementById('winText').innerText = cfg.winT || "ПОБЕДА!";
+            if(cfg.winI) document.getElementById('winImgContainer').innerHTML = `<img src="${cfg.winI}">`;
+            ws.style.display = 'block';
         }
     </script>
 </body>
