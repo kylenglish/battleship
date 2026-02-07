@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sea Battle Player</title>
-    <link id="fontLink" rel="stylesheet">
     <style>
         :root { --accent: #00d4ff; --text-color: #ffffff; --scale: 1; --blur: 0px; }
         body { 
@@ -20,14 +19,16 @@
             border-radius: 20px; padding: 40px; text-align: center; max-width: 80%;
             z-index: 100; transition: 0.3s;
         }
-        #gameScreen { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; }
+        #gameScreen { display: none; flex-direction: column; align-items: center; justify-content: flex-start; width: 100%; height: 100%; padding-top: 20px; }
         
-        /* Исправленный контейнер масштаба */
+        #statBar { margin-bottom: 20px; font-weight: bold; font-size: 1.2rem; }
+
         .grid-wrapper { 
             display: flex; justify-content: center; align-items: center;
             transform: scale(var(--scale)); 
-            transform-origin: center center;
-            max-width: 100vw; max-height: 80vh;
+            transform-origin: top center;
+            flex-grow: 1;
+            width: 100%;
         }
         
         .grid-container { display: grid; gap: 10px; padding: 20px; background: rgba(0, 0, 0, 0.3); border: 2px solid var(--accent); border-radius: 15px; }
@@ -50,7 +51,7 @@
     </div>
 
     <div id="gameScreen">
-        <div id="statBar" style="margin-bottom:20px; font-weight:bold; z-index: 10;">Найденные цели: 0 / 0</div>
+        <div id="statBar">Найденные цели: 0 / 0</div>
         <div class="grid-wrapper"><div id="grid" class="grid-container"></div></div>
     </div>
 
@@ -71,11 +72,8 @@
         root.style.setProperty('--scale', cfg.zoom || 1);
         root.style.setProperty('--blur', (cfg.blur || 0) + "px");
 
-        if (cfg.bg?.startsWith('http')) {
-            document.body.style.backgroundImage = `url('${cfg.bg}')`;
-        } else if (cfg.bg) {
-            document.body.style.background = cfg.bg; // Поддержка цвета и градиента
-        }
+        if (cfg.bg?.startsWith('http')) { document.body.style.backgroundImage = `url('${cfg.bg}')`; } 
+        else if (cfg.bg) { document.body.style.background = cfg.bg; }
 
         document.getElementById('titleDisp').innerText = cfg.t;
         if (cfg.neonT) document.getElementById('titleDisp').classList.add('neon-text');
@@ -115,7 +113,6 @@
                     cell.onclick = () => {
                         if (cell.innerHTML || cell.classList.contains('miss')) return;
                         if (targets.has(idx)) {
-                            // Если URL пустой, ставим корабль
                             cell.innerHTML = cfg.targetImg ? `<img src="${cfg.targetImg}">` : "🚢";
                             if (cfg.neonB) cell.classList.add('neon-border');
                             found++;
