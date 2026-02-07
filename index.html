@@ -1,9 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta http-equiv="refresh" content="0; url=redactorbattleship/">
+    <meta charset="UTF-8">
+    <script>
+        window.location.href = window.location.href.endsWith('/') 
+            ? window.location.href + 'redactorbattleship/' 
+            : window.location.href + '/redactorbattleship/';
+    </script>
 </head>
 <body>
-    <p>Загрузка редактора... Если ничего не произошло, <a href="redactorbattleship/">нажмите сюда</a>.</p>
+    Если страница не открылась, <a href="./redactorbattleship/">нажмите здесь</a>.
 </body>
 </html>
