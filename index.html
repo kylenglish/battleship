@@ -2,69 +2,111 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Sea Battle Editor</title>
+    <title>Редактор от @kylenglish</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f7ff; padding: 20px; display: flex; justify-content: center; }
-        .box { max-width: 500px; width: 100%; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        h2 { color: #1a3a5f; text-align: center; border-bottom: 2px solid #00d4ff; padding-bottom: 10px; }
-        label { display: block; margin: 15px 0 5px; font-weight: bold; color: #444; font-size: 0.9rem; }
-        input, textarea, select { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; box-sizing: border-box; font-family: inherit; transition: 0.3s; }
-        input:focus, textarea:focus { border-color: #00d4ff; outline: none; }
-        .hint { font-size: 0.75rem; color: #888; margin-bottom: 10px; }
-        button { width: 100%; padding: 15px; background: #00d4ff; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 25px; font-size: 1rem; box-shadow: 0 4px 15px rgba(0,212,255,0.3); transition: 0.3s; }
-        button:hover { background: #00b8e6; transform: translateY(-2px); }
-        #result { margin-top: 25px; display: none; padding: 15px; background: #faffff; border: 2px dashed #00d4ff; border-radius: 10px; }
-        #output { width: 100%; height: 100px; font-family: monospace; font-size: 0.8rem; margin-top: 10px; background: #fff; }
+        :root { --main-color: #00d4ff; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f7ff; padding: 20px; display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+        .box { max-width: 450px; width: 100%; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .preview-box { width: 500px; background: #fff; border-radius: 20px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); position: sticky; top: 20px; height: fit-content; }
+        h2 { color: #1a3a5f; text-align: center; border-bottom: 2px solid var(--main-color); padding-bottom: 10px; margin-top: 0; font-size: 1.2rem; }
+        label { display: block; margin: 12px 0 5px; font-weight: bold; color: #444; font-size: 0.85rem; }
+        input, textarea, select { width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 10px; box-sizing: border-box; font-family: inherit; }
+        button { width: 100%; padding: 15px; background: var(--main-color); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 20px; transition: 0.3s; }
+        button:hover { filter: brightness(0.9); transform: translateY(-1px); }
+        iframe { width: 100%; height: 500px; border: 1px solid #ddd; border-radius: 10px; margin-top: 10px; }
+        #output { width: 100%; height: 80px; margin-top: 10px; font-size: 0.8rem; }
     </style>
 </head>
 <body>
-    <div class="box">
-        <h2>🚢 Конструктор Игры</h2>
-        <label>Название игры:</label>
-        <input type="text" id="t" value="Морской Бой">
-        <label>Режим игры:</label>
-        <select id="m">
-            <option value="writing">Writing (ученик пишет ответ)</option>
-            <option value="classic">Classic (просто кликает)</option>
-        </select>
-        <label>Слова по горизонтали:</label>
-        <textarea id="x" rows="2">I, You, She, We, They</textarea>
-        <label>Слова по вертикали:</label>
-        <textarea id="y" rows="2">play tennis, go to school, sleep</textarea>
-        <label>Количество кораблей:</label>
-        <input type="number" id="s" value="3">
-        <label>Цвет интерфейса:</label>
-        <input type="color" id="c" value="#00d4ff">
 
-        <button onclick="generate()">СОЗДАТЬ КОД ДЛЯ GENIALLY</button>
+<div class="box">
+    <h2>🚢 Редактор игры "Морской бой" от @kylenglish</h2>
+    
+    <label>Заголовок:</label>
+    <input type="text" id="t" value="Sea Battle" oninput="updatePreview()">
 
-        <div id="result">
-            <p style="font-weight:bold; font-size:0.8rem;">✅ Код готов! Скопируйте его:</p>
-            <textarea id="output" readonly></textarea>
-        </div>
+    <label>Язык интерфейса:</label>
+    <select id="lang" onchange="updatePreview()">
+        <option value="ru">Русский</option>
+        <option value="en">English</option>
+        <option value="fr">Français</option>
+        <option value="es">Español</option>
+        <option value="de">Deutsch</option>
+        <option value="zh">Chinese</option>
+    </select>
+
+    <label>Шрифт:</label>
+    <select id="font" onchange="updatePreview()">
+        <option value="PT Sans">PT Sans</option>
+        <option value="Rubik">Rubik</option>
+        <option value="Lobster">Lobster</option>
+        <option value="Marck Script">Marck Script</option>
+        <option value="Cormorant">Cormorant</option>
+        <option value="Montserrat">Montserrat</option>
+        <option value="Open Sans">Open Sans</option>
+        <option value="Noto Sans">Noto Sans</option>
+    </select>
+
+    <label>Что ищем (ссылка на картинку):</label>
+    <input type="text" id="targetImg" placeholder="Вставьте URL картинки (звездочка, и т.п.)" oninput="updatePreview()">
+
+    <label>Слова по горизонтали (через запятую):</label>
+    <textarea id="x" rows="2" oninput="updatePreview()">I, You, She, We, They</textarea>
+
+    <label>Слова по вертикали (через запятую):</label>
+    <textarea id="y" rows="2" oninput="updatePreview()">play, go, sleep</textarea>
+
+    <label>Цвет:</label>
+    <input type="color" id="c" value="#00d4ff" oninput="updatePreview()">
+
+    <button onclick="generate()">СКОПИРОВАТЬ КОД ДЛЯ GENIALLY</button>
+    <textarea id="output" readonly placeholder="Здесь появится код для вставки"></textarea>
+</div>
+
+<div class="preview-box">
+    <h2>👀 Предпросмотр игры</h2>
+    <div id="previewContainer">
+        <p style="text-align:center; color:#888;">Загрузка предпросмотра...</p>
     </div>
+</div>
 
-    <script>
-    function generate() {
-        const config = {
+<script>
+    function getParams() {
+        return {
             title: document.getElementById('t').value,
-            mode: document.getElementById('m').value,
             x: document.getElementById('x').value.split(',').map(s => s.trim()),
             y: document.getElementById('y').value.split(',').map(s => s.trim()),
-            ships: parseInt(document.getElementById('s').value),
-            color: document.getElementById('c').value
+            color: document.getElementById('c').value,
+            targetImg: document.getElementById('targetImg').value,
+            font: document.getElementById('font').value,
+            lang: document.getElementById('lang').value,
+            ships: 3 // можно добавить ползунок
         };
-
-        const data = btoa(unescape(encodeURIComponent(JSON.stringify(config))));
-        
-        // ВОТ ЭТА СТРОКА, которую мы меняли:
-        const playerUrl = "https://kylenglish.github.io/battleship/play.html?data=" + data;
-        
-        const iframeCode = `<iframe src="${playerUrl}" width="100%" height="600px" style="border:0;" allowfullscreen="true"></iframe>`;
-        
-        document.getElementById('output').value = iframeCode;
-        document.getElementById('result').style.display = 'block';
     }
-    </script>
+
+    function updatePreview() {
+        const config = getParams();
+        const data = btoa(unescape(encodeURIComponent(JSON.stringify(config))));
+        const url = `https://kylenglish.github.io/battleship/play.html?data=${data}`;
+        document.getElementById('previewContainer').innerHTML = `<iframe src="${url}"></iframe>`;
+    }
+
+    function generate() {
+        const config = getParams();
+        const data = btoa(unescape(encodeURIComponent(JSON.stringify(config))));
+        const playerUrl = `https://kylenglish.github.io/battleship/play.html?data=${data}`;
+        const code = `<iframe src="${playerUrl}" width="100%" height="600px" style="border:0;" allowfullscreen="true"></iframe>`;
+        
+        const out = document.getElementById('output');
+        out.value = code;
+        out.select();
+        document.execCommand('copy');
+        alert("Код скопирован! Вставьте его в Genially (Insert -> Others)");
+    }
+
+    // Запуск предпросмотра при старте
+    window.onload = updatePreview;
+</script>
+
 </body>
 </html>
