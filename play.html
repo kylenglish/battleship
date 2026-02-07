@@ -1,96 +1,163 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sea Battle Player</title>
+    <title>Sea Battle by @kylenglish</title>
     <link id="fontLink" rel="stylesheet">
     <style>
-        body { margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; background: #f0f7ff; color: #333; height: 100vh; overflow: hidden; }
-        h1 { margin: 5px 0; font-size: 1.2rem; }
-        .grid-container { display: grid; gap: 2px; margin-top: 10px; background: #ccc; border: 2px solid #333; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-        .cell { width: 60px; height: 60px; background: white; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; cursor: pointer; text-align: center; padding: 2px; overflow: hidden; word-break: break-word; }
-        .cell:hover { background: #e0f7fa; }
-        .cell.hit { background: #ff5252; color: white; position: relative; }
-        .cell.miss { background: #cfd8dc; }
-        /* Стиль для кастомной картинки внутри клетки */
-        .target-icon { width: 80%; height: 80%; object-fit: contain; }
-        .hit-mark { position: absolute; font-size: 2rem; color: white; line-height: 0; pointer-events: none; }
+        :root { --accent: #00d4ff; }
+        body { 
+            margin: 0; padding: 0; 
+            background: #0a192f; 
+            color: white; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            height: 100vh; overflow: hidden; 
+        }
+        
+        /* Стартовый экран */
+        #startScreen {
+            background: rgba(16, 33, 65, 0.9);
+            border: 2px solid var(--accent);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            max-width: 80%;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+        }
+        h1 { color: var(--accent); font-size: 3rem; margin: 0 0 20px; text-transform: uppercase; letter-spacing: 5px; }
+        .rules { text-align: left; margin-bottom: 30px; font-size: 1.1rem; line-height: 1.6; }
+        .rules li { margin-bottom: 15px; list-style: none; display: flex; align-items: center; }
+        .rules li::before { content: "◆"; color: var(--accent); margin-right: 15px; }
+        
+        button#startBtn {
+            background: var(--accent);
+            color: #0a192f;
+            border: none;
+            padding: 15px 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button#startBtn:hover { transform: scale(1.05); box-shadow: 0 0 15px var(--accent); }
+
+        /* Игровой экран */
+        #gameScreen { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; }
+        .stats { font-size: 1.2rem; margin-bottom: 10px; font-weight: bold; }
+        
+        .grid-container { 
+            display: grid; 
+            gap: 8px; 
+            padding: 15px;
+            background: rgba(0, 212, 255, 0.1);
+            border: 2px solid var(--accent);
+            border-radius: 15px;
+        }
+        
+        .cell { 
+            width: 80px; height: 80px; 
+            background: rgba(255, 255, 255, 0.05); 
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 0.9rem; cursor: pointer; text-align: center;
+            transition: 0.2s;
+        }
+        .cell:hover { background: rgba(0, 212, 255, 0.2); }
+        
+        /* Метки на поле */
+        .cell.hit { background: rgba(0, 212, 255, 0.1); border-color: var(--accent); }
+        .cell.miss { opacity: 0.3; background: #000; }
+        .target-icon { width: 70%; height: 70%; object-fit: contain; filter: drop-shadow(0 0 5px var(--accent)); }
+        
+        .header-cell { color: var(--accent); font-weight: bold; pointer-events: none; border: none; background: none; }
     </style>
 </head>
 <body>
-    <h1 id="gameTitle">Sea Battle</h1>
-    <div id="grid" class="grid-container"></div>
+
+    <div id="startScreen">
+        <h1 id="titleDisplay">МОРСКОЙ БОЙ</h1>
+        <div class="rules">
+            <li>Нажимай на клетки, чтобы найти скрытые цели.</li>
+            <li>Чтобы сделать выстрел, составь правильное предложение.</li>
+            <li id="goalText">Найди все цели для победы!</li>
+        </div>
+        <button id="startBtn" onclick="startGame()">ИГРАТЬ</button>
+    </div>
+
+    <div id="gameScreen">
+        <div class="stats">🚢 <span id="foundCount">0</span> / <span id="totalCount">3</span></div>
+        <div id="grid" class="grid-container"></div>
+    </div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        let config = { title: "Sea Battle", x: [], y: [], color: "#00d4ff", ships: 3, targetImg: "", font: "PT Sans", lang: "en" };
-
-        // Тексты интерфейса
-        const i18n = {
-            ru: { win: "Победа! Все цели найдены." },
-            en: { win: "Victory! All targets found." },
-            fr: { win: "Victoire! Toutes les cibles trouvées." },
-            es: { win: "¡Victoria! Todos los objetivos encontrados." },
-            de: { win: "Sieg! Alle Ziele gefunden." },
-            zh: { win: "胜利！所有目标都找到了。" }
-        };
+        let config = { title: "Морской Бой", x: ["I","You","She"], y: ["play","go"], color: "#00d4ff", ships: 3, targetImg: "", font: "PT Sans", lang: "ru" };
 
         if (urlParams.has('data')) {
-            try {
-                config = JSON.parse(decodeURIComponent(escape(atob(urlParams.get('data')))));
-            } catch (e) { console.error("Error parsing config"); }
+            try { config = JSON.parse(decodeURIComponent(escape(atob(urlParams.get('data'))))); } catch (e) {}
         }
 
-        // Применяем настройки
-        document.getElementById('gameTitle').innerText = config.title;
-        document.body.style.backgroundColor = config.color + '22'; 
+        // Применяем кастомные настройки
+        document.documentElement.style.setProperty('--accent', config.color);
+        document.getElementById('titleDisplay').innerText = config.title;
+        document.getElementById('totalCount').innerText = config.ships;
         document.getElementById('fontLink').href = `https://fonts.googleapis.com/css2?family=${config.font.replace(/ /g, '+')}&display=swap`;
         document.body.style.fontFamily = `'${config.font}', sans-serif`;
 
-        const grid = document.getElementById('grid');
-        grid.style.gridTemplateColumns = `repeat(${config.x.length}, 60px)`;
-        
-        let found = 0;
-        const total = config.ships;
-        const targets = new Set();
-        while(targets.size < total) {
-            targets.add(Math.floor(Math.random() * (config.x.length * config.y.length)));
+        function startGame() {
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'flex';
         }
 
-        for (let i = 0; i < config.y.length * config.x.length; i++) {
-            const cell = document.createElement('div');
-            cell.className = 'cell';
-            const row = Math.floor(i / config.x.length);
-            const col = i % config.x.length;
-            cell.innerText = `${config.x[col]}\n${config.y[row]}`;
+        const grid = document.getElementById('grid');
+        const rows = config.y.length + 1;
+        const cols = config.x.length + 1;
+        grid.style.gridTemplateColumns = `repeat(${cols}, 80px)`;
 
-            cell.onclick = () => {
-                if (cell.classList.contains('hit') || cell.classList.contains('miss')) return;
-                
-                if (targets.has(i)) {
-                    cell.classList.add('hit');
-                    cell.innerText = ''; // Очищаем текст при попадании
-                    
-                    // Если есть своя картинка - вставляем её, если нет - рисуем стандартный крестик
-                    if (config.targetImg) {
-                        const img = document.createElement('img');
-                        img.src = config.targetImg;
-                        img.className = 'target-icon';
-                        cell.appendChild(img);
-                    } else {
-                        cell.innerHTML = '<span class="hit-mark">✕</span>';
-                    }
+        let found = 0;
+        const targets = new Set();
+        const totalCells = config.x.length * config.y.length;
+        while(targets.size < Math.min(config.ships, totalCells)) {
+            targets.add(Math.floor(Math.random() * totalCells));
+        }
 
-                    found++;
-                    if (found === total) {
-                        setTimeout(() => alert(i18n[config.lang]?.win || i18n.en.win), 300);
-                    }
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+
+                if (r === 0 && c === 0) {
+                    cell.className = 'cell header-cell';
+                } else if (r === 0) {
+                    cell.className = 'cell header-cell';
+                    cell.innerText = config.x[c-1];
+                } else if (c === 0) {
+                    cell.className = 'cell header-cell';
+                    cell.innerText = config.y[r-1];
                 } else {
-                    cell.classList.add('miss');
+                    const index = (r-1) * config.x.length + (c-1);
+                    cell.onclick = () => {
+                        if (cell.classList.contains('hit') || cell.classList.contains('miss')) return;
+                        if (targets.has(index)) {
+                            cell.classList.add('hit');
+                            if (config.targetImg) {
+                                cell.innerHTML = `<img src="${config.targetImg}" class="target-icon">`;
+                            } else {
+                                cell.innerHTML = "🚢";
+                            }
+                            found++;
+                            document.getElementById('foundCount').innerText = found;
+                            if (found >= config.ships) alert("ПОБЕДА!");
+                        } else {
+                            cell.classList.add('miss');
+                        }
+                    };
                 }
-            };
-            grid.appendChild(cell);
+                grid.appendChild(cell);
+            }
         }
     </script>
 </body>
