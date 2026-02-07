@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Sea Battle Editor</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f7ff; padding: 20px; display: flex; justify-content: center; }
+        .box { max-width: 500px; width: 100%; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        h2 { color: #1a3a5f; text-align: center; border-bottom: 2px solid #00d4ff; padding-bottom: 10px; }
+        label { display: block; margin: 15px 0 5px; font-weight: bold; color: #444; font-size: 0.9rem; }
+        input, textarea, select { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; box-sizing: border-box; font-family: inherit; transition: 0.3s; }
+        input:focus, textarea:focus { border-color: #00d4ff; outline: none; }
+        .hint { font-size: 0.75rem; color: #888; margin-bottom: 10px; }
+        button { width: 100%; padding: 15px; background: #00d4ff; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 25px; font-size: 1rem; box-shadow: 0 4px 15px rgba(0,212,255,0.3); transition: 0.3s; }
+        button:hover { background: #00b8e6; transform: translateY(-2px); }
+        #result { margin-top: 25px; display: none; padding: 15px; background: #faffff; border: 2px dashed #00d4ff; border-radius: 10px; }
+        #output { width: 100%; height: 100px; font-family: monospace; font-size: 0.8rem; margin-top: 10px; background: #fff; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>🚢 Конструктор Игры</h2>
+        
+        <label>Название игры:</label>
+        <input type="text" id="t" value="Морской Бой">
+        
+        <label>Режим игры:</label>
+        <select id="m">
+            <option value="writing">Writing (ученик пишет ответ)</option>
+            <option value="classic">Classic (просто кликает)</option>
+        </select>
+
+        <label>Слова по горизонтали:</label>
+        <div class="hint">Через запятую: I, You, My friend...</div>
+        <textarea id="x" rows="2">I, You, She, We, They</textarea>
+
+        <label>Слова по вертикали:</label>
+        <div class="hint">Через запятую: play, sing, dance...</div>
+        <textarea id="y" rows="2">play tennis, go to school, sleep</textarea>
+
+        <label>Количество спрятанных кораблей:</label>
+        <input type="number" id="s" value="3" min="1">
+
+        <label>Цвет интерфейса:</label>
+        <input type="color" id="c" value="#00d4ff">
+
+        <button onclick="generate()">СОЗДАТЬ КОД ДЛЯ GENIALLY</button>
+
+        <div id="result">
+            <p style="font-weight:bold; font-size:0.8rem; margin:0;">✅ Код готов! Скопируйте его:</p>
+            <textarea id="output" readonly></textarea>
+            <p style="font-size:0.7rem; color:#666; margin-top:10px;">Вставьте этот код в Genially через: <b>Вставка -> Другое (Others)</b></p>
+        </div>
+    </div>
+
+    <script>
+    function generate() {
+        const твойЛогин = 'kylenglish'; 
+        const имяРепозитория = 'battleship'; // Исправлено на правильное имя
+        
+        const config = {
+            title: document.getElementById('t').value,
+            mode: document.getElementById('m').value,
+            x: document.getElementById('x').value.split(',').map(s => s.trim()),
+            y: document.getElementById('y').value.split(',').map(s => s.trim()),
+            ships: parseInt(document.getElementById('s').value),
+            color: document.getElementById('c').value
+        };
+
+        const data = btoa(unescape(encodeURIComponent(JSON.stringify(config))));
+        
+        // Ссылка теперь ведет точно по адресу: kylenglish.github.io/battleship/battleship/
+        const playerUrl = `https://${твойЛогин}.github.io/${имяРепозитория}/battleship/?data=${data}`;
+        
+        const iframeCode = `<iframe src="${playerUrl}" width="100%" height="600px" style="border:0;" allow="autoplay" allowfullscreen="true"></iframe>`;
+        
+        document.getElementById('output').value = iframeCode;
+        document.getElementById('result').style.display = 'block';
+    }
+    </script>
+</body>
+</html>
