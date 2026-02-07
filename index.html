@@ -22,47 +22,34 @@
 
 <div class="panel">
     <h2 style="color:var(--main); text-align:center; margin-top:0;">Редактор "Морской бой"</h2>
-    
     <label>Заголовок игры:</label>
     <input type="text" id="t" value="МОРСКОЙ БОЙ" oninput="update()">
-
     <div class="row">
-        <div style="flex:1">
-            <label>Цвет обводки:</label>
-            <input type="color" id="c" value="#00d4ff" oninput="update()">
-        </div>
-        <div style="flex:1">
-            <label>Цвет текста:</label>
-            <input type="color" id="fColor" value="#ffffff" oninput="update()">
-        </div>
+        <div style="flex:1"><label>Цвет обводки:</label><input type="color" id="c" value="#00d4ff" oninput="update()"></div>
+        <div style="flex:1"><label>Цвет текста:</label><input type="color" id="fColor" value="#ffffff" oninput="update()"></div>
     </div>
-
     <label>Масштаб поля:</label>
-    <input type="range" id="zoom" min="0.4" max="1.5" step="0.05" value="1" oninput="update()">
-
+    <input type="range" id="zoom" min="0.4" max="1.5" step="0.05" value="1" oninput="update(true)">
+    <label>Настройка фона (URL или цвет):</label>
+    <input type="text" id="bg" placeholder="URL картинки или #цвет" oninput="update()">
+    <label>Размытие фона:</label>
+    <input type="range" id="blur" min="0" max="20" step="1" value="0" oninput="update()">
     <div class="check-group">
-        <div class="check-row">
-            <input type="checkbox" id="neonT" checked onchange="update()">
-            <label style="margin:0">Неон для ТЕКСТА</label>
-        </div>
-        <div class="check-row">
-            <input type="checkbox" id="neonB" checked onchange="update()">
-            <label style="margin:0">Неон для ОБВОДКИ</label>
-        </div>
+        <div class="check-row"><input type="checkbox" id="neonT" checked onchange="update()"><label style="margin:0">Неон для ТЕКСТА</label></div>
+        <div class="check-row"><input type="checkbox" id="neonB" checked onchange="update()"><label style="margin:0">Неон для ОБВОДКИ</label></div>
     </div>
-
     <label>Слова/URL (горизонталь):</label>
     <textarea id="x" rows="2" oninput="update()">I, You, She, We, They</textarea>
-
     <label>Слова/URL (вертикаль):</label>
     <textarea id="y" rows="2" oninput="update()">play, go, sleep</textarea>
-
     <label>Кол-во целей и URL картинки цели:</label>
     <div class="row">
         <input type="number" id="s" value="3" style="width:60px" oninput="update()">
         <input type="text" id="targetImg" placeholder="URL картинки цели" oninput="update()">
     </div>
-
+    <label>Финальный фидбек (Текст и URL фото):</label>
+    <input type="text" id="winT" value="ПОБЕДА!" oninput="update()">
+    <input type="text" id="winI" placeholder="URL картинки финала" oninput="update()">
     <button onclick="copyCode()">СКОПИРОВАТЬ КОД ДЛЯ GENIALLY</button>
 </div>
 
@@ -80,25 +67,27 @@
             neonT: document.getElementById('neonT').checked,
             neonB: document.getElementById('neonB').checked,
             fColor: document.getElementById('fColor').value,
-            zoom: document.getElementById('zoom').value
+            zoom: document.getElementById('zoom').value,
+            bg: document.getElementById('bg').value,
+            blur: document.getElementById('blur').value,
+            winT: document.getElementById('winT').value,
+            winI: document.getElementById('winI').value
         };
     }
-
-    function update() {
+    function update(isPreviewMode = false) {
         const data = btoa(unescape(encodeURIComponent(JSON.stringify(getData()))));
-        const url = `https://kylenglish.github.io/battleship/play.html?data=${data}`;
+        let url = `https://kylenglish.github.io/battleship/play.html?data=${data}`;
+        if(isPreviewMode) url += "&preview=true";
         document.getElementById('previewContainer').innerHTML = `<iframe src="${url}"></iframe>`;
     }
-
     function copyCode() {
-        const url = document.querySelector('iframe').src;
+        const data = btoa(unescape(encodeURIComponent(JSON.stringify(getData()))));
+        const url = `https://kylenglish.github.io/battleship/play.html?data=${data}`;
         const code = `<iframe src="${url}" width="100%" height="600px" style="border:0;" allowfullscreen="true"></iframe>`;
         navigator.clipboard.writeText(code);
         alert("Код для Genially скопирован!");
     }
-
-    window.onload = update;
+    window.onload = () => update();
 </script>
-
 </body>
 </html>
