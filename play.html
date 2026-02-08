@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sea Battle Player - AI Mode</title>
+    <title>Sea Battle Player</title>
     <style>
         :root { --accent: #00d4ff; --text-color: #ffffff; --scale: 1; --blur: 0px; }
         body { 
@@ -42,57 +42,19 @@
         .modal-content button { background:var(--accent); color:#0a192f; border:none; padding:12px 30px; border-radius:10px; font-weight:bold; cursor:pointer; width:100%; }
 
         #winScreen { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:rgba(10,25,47,0.95); border:3px solid var(--accent); padding:30px; border-radius:20px; text-align:center; z-index:1000; box-shadow: 0 0 30px var(--accent); }
-        
-        .shake { animation: shake 0.4s; border-color: #ff4d4d !important; }
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            75% { transform: translateX(10px); }
-        }
-        
-        /* Стили для попаданий компьютера по игроку */
-        .pc-hit { border-color: #ff4d4d !important; background: rgba(255, 77, 77, 0.2) !important; }
     </style>
 </head>
 <body>
-    <div id="modalOverlay">
-        <div class="modal-content" id="modalBox">
-            <h3 id="modalPrompt">Введите ответ</h3>
-            <div id="modalTask" style="color:var(--accent); font-weight:bold; font-size:1.4rem; margin-bottom:10px;"></div>
-            <input type="text" id="userAnswer" placeholder="Напишите здесь..." autocomplete="off">
-            <button onclick="checkModalAnswer()">ВЫСТРЕЛИТЬ!</button>
-        </div>
-    </div>
-
+    <div id="modalOverlay"><div class="modal-content" id="modalBox"><h3 id="modalPrompt">Введите ответ</h3><div id="modalTask" style="color:var(--accent); font-weight:bold; font-size:1.4rem; margin-bottom:10px;"></div><input type="text" id="userAnswer" placeholder="Напишите здесь..." autocomplete="off"><button onclick="checkModalAnswer()">ВЫСТРЕЛИТЬ!</button></div></div>
     <div class="bg-overlay"></div>
-    
-    <div id="startScreen">
-        <h1 id="titleDisp" class="neon-text">МОРСКОЙ БОЙ</h1>
-        <div id="teamSetup" style="display:none; margin-bottom:20px;"></div>
-        <button id="startBtn" onclick="startGame()">ИГРАТЬ</button>
-    </div>
-
-    <div id="gameScreen">
-        <div id="turnInfo" style="color:var(--accent); margin-bottom:10px; font-weight:bold; font-size: 1.2rem;"></div>
-        <div id="statBar"></div>
-        <div class="grid-wrapper"><div id="grid" class="grid-container"></div></div>
-    </div>
-
-    <div id="winScreen">
-        <h2 id="winText" class="neon-text">ПОБЕДА!</h2>
-        <div id="winImgContainer"></div>
-        <button onclick="location.reload()" id="startBtn" style="padding:10px 20px; font-size:0.9rem;">ИГРАТЬ СНОВА</button>
-    </div>
+    <div id="startScreen"><h1 id="titleDisp" class="neon-text">МОРСКОЙ БОЙ</h1><div id="teamSetup" style="display:none; margin-bottom:20px;"></div><button id="startBtn" onclick="startGame()">ИГРАТЬ</button></div>
+    <div id="gameScreen"><div id="turnInfo" style="color:var(--accent); margin-bottom:10px; font-weight:bold; font-size: 1.2rem;"></div><div id="statBar"></div><div class="grid-wrapper"><div id="grid" class="grid-container"></div></div></div>
+    <div id="winScreen"><h2 id="winText" class="neon-text">ПОБЕДА!</h2><div id="winImgContainer"></div><button onclick="location.reload()" id="startBtn" style="padding:10px 20px; font-size:0.9rem;">ИГРАТЬ СНОВА</button></div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         let cfg = { t: "МОРСКОЙ БОЙ", x: [], y: [], c: "#00d4ff", s: 3, zoom: 1, fColor: "#ffffff", bg: "", blur: 0, winT: "ПОБЕДА!", winI: "", mode: "classic", answers: "", challengeLimit: 30, challengeType: "time", gameType: "solo", teamCount: 2 };
-        
-        if (urlParams.has('data')) {
-            try {
-                cfg = JSON.parse(decodeURIComponent(escape(atob(urlParams.get('data')))));
-            } catch(e) { console.error("Ошибка загрузки данных"); }
-        }
+        if (urlParams.has('data')) { try { cfg = JSON.parse(decodeURIComponent(escape(atob(urlParams.get('data'))))); } catch(e) { console.error("Ошибка загрузки"); } }
 
         const root = document.documentElement;
         root.style.setProperty('--accent', cfg.c);
@@ -102,26 +64,16 @@
 
         if (cfg.bg?.startsWith('http')) document.body.style.backgroundImage = `url('${cfg.bg}')`;
         else if (cfg.bg) document.body.style.background = cfg.bg;
-
         document.getElementById('titleDisp').innerText = cfg.t;
 
-        if (cfg.gameType === 'team') {
-            const setup = document.getElementById('teamSetup');
-            setup.style.display = 'block';
-            setup.innerHTML = '<p style="margin-bottom:10px;">Имена команд:</p>';
-            for(let i=1; i<=cfg.teamCount; i++) {
-                setup.innerHTML += `<input type="text" id="tName${i}" value="Команда ${i}" style="margin:5px; padding:8px; border-radius:8px; border:1px solid var(--accent); background:#000; color:#fff; width:80%; text-align:center;"><br>`;
-            }
-        }
-
         let found = 0, currentTeam = 0, teams = [], timerInterval, gameOver = false;
-        let pcFound = 0, pcOpened = new Set(), isPlayerTurn = true;
+        let pcFound = 0, isPlayerTurn = true;
         let timeLeft = parseInt(cfg.challengeLimit) || 30;
         let movesLeft = parseInt(cfg.challengeLimit) || 30;
         const targets = new Set(), openedCells = new Set();
         const ansMap = cfg.answers ? cfg.answers.split('\n').map(a => a.trim().toLowerCase()) : [];
         let currentAttemptIdx = null, currentAttemptCell = null;
-        let cellElements = {}; // Для хранения ссылок на клетки, чтобы компьютер мог "стрелять"
+        let cellElements = {};
 
         function startGame() {
             if (cfg.gameType === 'team') {
@@ -131,70 +83,43 @@
                     teams.push({ name: (el && el.value) ? el.value : `Команда ${i}`, score: 0 });
                 }
             }
-
             document.getElementById('startScreen').style.display = 'none';
             document.getElementById('gameScreen').style.display = 'flex';
-            
             initGrid();
-
             if (cfg.mode === 'challenge' && cfg.challengeType === 'time') {
-                timerInterval = setInterval(() => {
-                    timeLeft--;
-                    updateStats();
-                    if (timeLeft <= 0) endGame(false);
-                }, 1000);
+                timerInterval = setInterval(() => { timeLeft--; updateStats(); if (timeLeft <= 0) endGame(false); }, 1000);
             }
             updateStats();
         }
 
         function updateStats() {
-            let text = `Ваши очки: ${found} / ${cfg.s}`;
-            if (cfg.mode === 'computer') {
-                text = `Вы: ${found} | Робот: ${pcFound} (из ${cfg.s})`;
-            } else if (cfg.mode === 'challenge') {
-                text += cfg.challengeType === 'time' ? ` | Время: ${timeLeft}с` : ` | Ходов: ${movesLeft}`;
-            }
+            let text = `Найдено: ${found} / ${cfg.s}`;
+            if (cfg.mode === 'computer') text = `Вы: ${found} | Робот: ${pcFound} (из ${cfg.s})`;
+            else if (cfg.mode === 'challenge') text += cfg.challengeType === 'time' ? ` | Время: ${timeLeft}с` : ` | Ходов: ${movesLeft}`;
             document.getElementById('statBar').innerText = text;
-            
             const turnDisplay = document.getElementById('turnInfo');
-            if (cfg.gameType === 'team' && teams.length > 0) {
-                turnDisplay.innerText = `ХОДИТ: ${teams[currentTeam].name}`;
-            } else if (cfg.mode === 'computer') {
-                turnDisplay.innerText = isPlayerTurn ? "ВАШ ХОД" : "ХОД РОБОТА...";
-            } else {
-                turnDisplay.innerText = "";
-            }
+            if (cfg.gameType === 'team') turnDisplay.innerText = `ХОДИТ: ${teams[currentTeam].name}`;
+            else if (cfg.mode === 'computer') turnDisplay.innerText = isPlayerTurn ? "ВАШ ХОД" : "ХОД РОБОТА...";
         }
 
         function initGrid() {
             const grid = document.getElementById('grid');
             grid.innerHTML = '';
             grid.style.gridTemplateColumns = `repeat(${cfg.x.length + 1}, auto)`;
-            
             const total = cfg.x.length * cfg.y.length;
-            while(targets.size < Math.min(cfg.s, total)) {
-                targets.add(Math.floor(Math.random() * total));
-            }
-
+            while(targets.size < Math.min(cfg.s, total)) { targets.add(Math.floor(Math.random() * total)); }
             for (let r = 0; r <= cfg.y.length; r++) {
                 for (let c = 0; c <= cfg.x.length; c++) {
                     const cell = document.createElement('div');
                     cell.className = 'cell';
-                    const valX = cfg.x[c-1];
-                    const valY = cfg.y[r-1];
-                    
-                    if (r === 0 && c === 0) {
+                    if (r === 0 || c === 0) {
                         cell.className += ' header-cell';
-                    } else if (r === 0) {
-                        cell.className += ' header-cell';
-                        cell.innerText = valX;
-                    } else if (c === 0) {
-                        cell.className += ' header-cell';
-                        cell.innerText = valY;
+                        if (r === 0 && c > 0) cell.innerText = cfg.x[c-1];
+                        if (c === 0 && r > 0) cell.innerText = cfg.y[r-1];
                     } else {
                         const idx = (r-1) * cfg.x.length + (c-1);
-                        cellElements[idx] = cell; // Сохраняем ссылку
-                        cell.onclick = () => handleMove(idx, cell, valX, valY);
+                        cellElements[idx] = cell;
+                        cell.onclick = () => handleMove(idx, cell, cfg.x[c-1], cfg.y[r-1]);
                     }
                     grid.appendChild(cell);
                 }
@@ -203,32 +128,20 @@
 
         function handleMove(idx, cell, valX, valY) {
             if (gameOver || openedCells.has(idx) || !isPlayerTurn) return;
-
             if (cfg.mode === 'writing') {
-                currentAttemptIdx = idx; 
-                currentAttemptCell = cell;
+                currentAttemptIdx = idx; currentAttemptCell = cell;
                 document.getElementById('modalOverlay').style.display = 'flex';
                 document.getElementById('modalTask').innerText = `${valX} + ${valY}`;
-                const inp = document.getElementById('userAnswer');
-                inp.value = '';
-                inp.focus();
-            } else {
-                processCell(idx, cell);
-                finalizeTurn();
-            }
+                document.getElementById('userAnswer').value = ''; document.getElementById('userAnswer').focus();
+            } else { processCell(idx, cell); finalizeTurn(); }
         }
 
         function checkModalAnswer() {
-            const val = document.getElementById('userAnswer').value.trim().toLowerCase();
-            const correct = (ansMap[currentAttemptIdx] || "").toLowerCase();
-            
-            if (val === correct) {
+            if (document.getElementById('userAnswer').value.trim().toLowerCase() === (ansMap[currentAttemptIdx] || "").toLowerCase()) {
                 document.getElementById('modalOverlay').style.display = 'none';
-                processCell(currentAttemptIdx, currentAttemptCell);
-                finalizeTurn();
+                processCell(currentAttemptIdx, currentAttemptCell); finalizeTurn();
             } else {
-                const box = document.getElementById('modalBox');
-                box.classList.add('shake');
+                const box = document.getElementById('modalBox'); box.classList.add('shake');
                 setTimeout(() => box.classList.remove('shake'), 400);
             }
         }
@@ -238,88 +151,57 @@
             if (targets.has(idx)) {
                 cell.innerHTML = cfg.targetImg ? `<img src="${cfg.targetImg}">` : "🚢";
                 cell.style.background = "rgba(0, 212, 255, 0.4)";
-                found++;
-                if (cfg.gameType === 'team' && teams.length > 0) teams[currentTeam].score++;
-                if (found >= cfg.s) {
-                    setTimeout(() => endGame(true), 500);
-                    return true;
-                }
-                return true; // Попал
+                found++; updateStats();
+                if (found >= cfg.s) setTimeout(() => endGame(true), 500);
+                return true;
             } else {
-                cell.innerHTML = "✕"; 
-                cell.style.opacity = "0.4";
-                return false; // Промах
+                cell.innerHTML = "✕"; cell.style.opacity = "0.4";
+                return false;
             }
         }
 
         function finalizeTurn() {
             if (gameOver) return;
-
             if (cfg.mode === 'challenge' && cfg.challengeType === 'moves') {
-                movesLeft--;
-                if (movesLeft <= 0 && found < cfg.s) endGame(false);
+                movesLeft--; if (movesLeft <= 0 && found < cfg.s) endGame(false);
             }
-            
-            if (cfg.gameType === 'team') {
-                currentTeam = (currentTeam + 1) % teams.length;
-            } else if (cfg.mode === 'computer') {
-                isPlayerTurn = false;
-                updateStats();
-                setTimeout(computerTurn, 1200);
-            }
+            if (cfg.gameType === 'team') currentTeam = (currentTeam + 1) % teams.length;
+            else if (cfg.mode === 'computer') { isPlayerTurn = false; setTimeout(computerTurn, 1000); }
             updateStats();
         }
 
         function computerTurn() {
             if (gameOver) return;
+            let available = [], empty = [];
+            for (let i = 0; i < cfg.x.length * cfg.y.length; i++) {
+                if (!openedCells.has(i)) { available.push(i); if (!targets.has(i)) empty.push(i); }
+            }
+            if (available.length === 0) return;
 
-            const total = cfg.x.length * cfg.y.length;
-            let shot;
-            // ИИ стреляет в случайную клетку, которую еще не открыл ОН САМ
-            // В режиме компьютера "жизни" общие, поэтому ИИ просто пытается найти ваши корабли
-            do {
-                shot = Math.floor(Math.random() * total);
-            } while (pcOpened.has(shot));
-
-            pcOpened.add(shot);
+            // Логика поддавания: робот специально промахивается, если это последний корабль до его победы
+            let shot = (pcFound === cfg.s - 1 && empty.length > 0) ? empty[Math.floor(Math.random() * empty.length)] : available[Math.floor(Math.random() * available.length)];
+            
+            openedCells.add(shot);
             const cell = cellElements[shot];
-
-            // Если робот попал в корабль (который еще не открыт игроком)
-            if (targets.has(shot) && !openedCells.has(shot)) {
-                cell.innerHTML = "🤖";
-                cell.classList.add('pc-hit');
-                pcFound++;
-                if (pcFound >= cfg.s) {
-                    endGame(false, "РОБОТ НАШЕЛ ВСЕ КОРАБЛИ ПЕРВЫМ!");
-                } else {
-                    setTimeout(computerTurn, 1000); // Робот ходит снова при попадании
-                }
+            if (targets.has(shot)) {
+                cell.innerHTML = cfg.targetImg ? `<img src="${cfg.targetImg}">` : "🚢";
+                cell.style.background = "rgba(0, 212, 255, 0.4)";
+                pcFound++; updateStats();
+                if (pcFound >= cfg.s) endGame(false, "РОБОТ ВЫИГРАЛ!"); else setTimeout(computerTurn, 1000);
             } else {
-                isPlayerTurn = true;
-                updateStats();
+                cell.innerHTML = "✕"; cell.style.opacity = "0.4";
+                isPlayerTurn = true; updateStats();
             }
         }
 
-        function endGame(isWin, customMsg) {
-            gameOver = true;
-            if (timerInterval) clearInterval(timerInterval);
-            
-            let winMsg = isWin ? (cfg.winT || "ПОБЕДА!") : (customMsg || "КОНЕЦ ИГРЫ!");
-            if (cfg.gameType === 'team' && teams.length > 0) {
-                const winner = [...teams].sort((a,b) => b.score - a.score)[0];
-                winMsg = `ПОБЕДИЛА КОМАНДА: ${winner.name.toUpperCase()}!`;
-            }
-            
-            document.getElementById('winText').innerText = winMsg;
-            if(cfg.winI) {
-                document.getElementById('winImgContainer').innerHTML = `<img src="${cfg.winI}" style="max-width:200px; margin-top:15px; border-radius:10px;">`;
-            }
+        function endGame(isWin, msg) {
+            gameOver = true; if (timerInterval) clearInterval(timerInterval);
+            document.getElementById('winText').innerText = isWin ? (cfg.winT || "ПОБЕДА!") : (msg || "ИГРА ОКОНЧЕНА");
+            if (cfg.winI) document.getElementById('winImgContainer').innerHTML = `<img src="${cfg.winI}" style="max-width:200px; margin-top:15px; border-radius:10px;">`;
             document.getElementById('winScreen').style.display = 'block';
         }
 
-        document.getElementById('userAnswer').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') checkModalAnswer();
-        });
+        document.getElementById('userAnswer').addEventListener('keypress', (e) => { if (e.key === 'Enter') checkModalAnswer(); });
     </script>
 </body>
 </html>
