@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sea Battle Player</title>
+    <title>Sea Battle Player - AI Mode</title>
     <style>
         :root { --accent: #00d4ff; --text-color: #ffffff; --scale: 1; --blur: 0px; }
         body { 
@@ -28,7 +28,7 @@
             flex-grow: 1; width: 100%;
         }
         .grid-container { display: grid; gap: 10px; padding: 20px; background: rgba(0, 0, 0, 0.3); border: 2px solid var(--accent); border-radius: 15px; }
-        .cell { width: 80px; height: 80px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; transition: 0.2s; }
+        .cell { width: 80px; height: 80px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; transition: 0.2s; font-size: 2rem; }
         .cell:hover { background: rgba(255, 255, 255, 0.1); }
         .cell img { width: 80%; height: 80%; object-fit: contain; }
         .header-cell { border: none; background: none; font-weight: bold; color: var(--text-color); cursor: default; font-size: 1.1rem; }
@@ -49,6 +49,9 @@
             25% { transform: translateX(-10px); }
             75% { transform: translateX(10px); }
         }
+        
+        /* Стили для попаданий компьютера по игроку */
+        .pc-hit { border-color: #ff4d4d !important; background: rgba(255, 77, 77, 0.2) !important; }
     </style>
 </head>
 <body>
@@ -102,7 +105,6 @@
 
         document.getElementById('titleDisp').innerText = cfg.t;
 
-        // Показ полей для команд, если выбран командный режим
         if (cfg.gameType === 'team') {
             const setup = document.getElementById('teamSetup');
             setup.style.display = 'block';
@@ -113,14 +115,15 @@
         }
 
         let found = 0, currentTeam = 0, teams = [], timerInterval, gameOver = false;
+        let pcFound = 0, pcOpened = new Set(), isPlayerTurn = true;
         let timeLeft = parseInt(cfg.challengeLimit) || 30;
         let movesLeft = parseInt(cfg.challengeLimit) || 30;
         const targets = new Set(), openedCells = new Set();
         const ansMap = cfg.answers ? cfg.answers.split('\n').map(a => a.trim().toLowerCase()) : [];
         let currentAttemptIdx = null, currentAttemptCell = null;
+        let cellElements = {}; // Для хранения ссылок на клетки, чтобы компьютер мог "стрелять"
 
         function startGame() {
-            // Инициализация команд (даже если поле пустое)
             if (cfg.gameType === 'team') {
                 teams = [];
                 for(let i=1; i<=cfg.teamCount; i++) {
@@ -145,16 +148,21 @@
         }
 
         function updateStats() {
-            let text = `Найдено: ${found} / ${cfg.s}`;
-            if (cfg.mode === 'challenge') {
+            let text = `Ваши очки: ${found} / ${cfg.s}`;
+            if (cfg.mode === 'computer') {
+                text = `Вы: ${found} | Робот: ${pcFound} (из ${cfg.s})`;
+            } else if (cfg.mode === 'challenge') {
                 text += cfg.challengeType === 'time' ? ` | Время: ${timeLeft}с` : ` | Ходов: ${movesLeft}`;
             }
             document.getElementById('statBar').innerText = text;
             
+            const turnDisplay = document.getElementById('turnInfo');
             if (cfg.gameType === 'team' && teams.length > 0) {
-                document.getElementById('turnInfo').innerText = `ХОДИТ: ${teams[currentTeam].name}`;
+                turnDisplay.innerText = `ХОДИТ: ${teams[currentTeam].name}`;
+            } else if (cfg.mode === 'computer') {
+                turnDisplay.innerText = isPlayerTurn ? "ВАШ ХОД" : "ХОД РОБОТА...";
             } else {
-                document.getElementById('turnInfo').innerText = "";
+                turnDisplay.innerText = "";
             }
         }
 
@@ -177,14 +185,15 @@
                     
                     if (r === 0 && c === 0) {
                         cell.className += ' header-cell';
-                    } else if (r === 0) { // Верхняя шапка (X)
+                    } else if (r === 0) {
                         cell.className += ' header-cell';
                         cell.innerText = valX;
-                    } else if (c === 0) { // Боковая шапка (Y)
+                    } else if (c === 0) {
                         cell.className += ' header-cell';
                         cell.innerText = valY;
                     } else {
                         const idx = (r-1) * cfg.x.length + (c-1);
+                        cellElements[idx] = cell; // Сохраняем ссылку
                         cell.onclick = () => handleMove(idx, cell, valX, valY);
                     }
                     grid.appendChild(cell);
@@ -193,13 +202,12 @@
         }
 
         function handleMove(idx, cell, valX, valY) {
-            if (gameOver || openedCells.has(idx)) return;
+            if (gameOver || openedCells.has(idx) || !isPlayerTurn) return;
 
             if (cfg.mode === 'writing') {
                 currentAttemptIdx = idx; 
                 currentAttemptCell = cell;
                 document.getElementById('modalOverlay').style.display = 'flex';
-                // Твой запрос: Сначала X (горизонталь), потом Y (вертикаль)
                 document.getElementById('modalTask').innerText = `${valX} + ${valY}`;
                 const inp = document.getElementById('userAnswer');
                 inp.value = '';
@@ -229,33 +237,74 @@
             openedCells.add(idx);
             if (targets.has(idx)) {
                 cell.innerHTML = cfg.targetImg ? `<img src="${cfg.targetImg}">` : "🚢";
-                cell.style.background = "rgba(0, 212, 255, 0.2)";
+                cell.style.background = "rgba(0, 212, 255, 0.4)";
                 found++;
                 if (cfg.gameType === 'team' && teams.length > 0) teams[currentTeam].score++;
-                if (found >= cfg.s) endGame(true);
+                if (found >= cfg.s) {
+                    setTimeout(() => endGame(true), 500);
+                    return true;
+                }
+                return true; // Попал
             } else {
                 cell.innerHTML = "✕"; 
                 cell.style.opacity = "0.4";
+                return false; // Промах
             }
         }
 
         function finalizeTurn() {
+            if (gameOver) return;
+
             if (cfg.mode === 'challenge' && cfg.challengeType === 'moves') {
                 movesLeft--;
                 if (movesLeft <= 0 && found < cfg.s) endGame(false);
             }
             
-            if (!gameOver && cfg.gameType === 'team') {
+            if (cfg.gameType === 'team') {
                 currentTeam = (currentTeam + 1) % teams.length;
+            } else if (cfg.mode === 'computer') {
+                isPlayerTurn = false;
+                updateStats();
+                setTimeout(computerTurn, 1200);
             }
             updateStats();
         }
 
-        function endGame(isWin) {
+        function computerTurn() {
+            if (gameOver) return;
+
+            const total = cfg.x.length * cfg.y.length;
+            let shot;
+            // ИИ стреляет в случайную клетку, которую еще не открыл ОН САМ
+            // В режиме компьютера "жизни" общие, поэтому ИИ просто пытается найти ваши корабли
+            do {
+                shot = Math.floor(Math.random() * total);
+            } while (pcOpened.has(shot));
+
+            pcOpened.add(shot);
+            const cell = cellElements[shot];
+
+            // Если робот попал в корабль (который еще не открыт игроком)
+            if (targets.has(shot) && !openedCells.has(shot)) {
+                cell.innerHTML = "🤖";
+                cell.classList.add('pc-hit');
+                pcFound++;
+                if (pcFound >= cfg.s) {
+                    endGame(false, "РОБОТ НАШЕЛ ВСЕ КОРАБЛИ ПЕРВЫМ!");
+                } else {
+                    setTimeout(computerTurn, 1000); // Робот ходит снова при попадании
+                }
+            } else {
+                isPlayerTurn = true;
+                updateStats();
+            }
+        }
+
+        function endGame(isWin, customMsg) {
             gameOver = true;
             if (timerInterval) clearInterval(timerInterval);
             
-            let winMsg = isWin ? (cfg.winT || "ПОБЕДА!") : "ВРЕМЯ ИЛИ ХОДЫ ЗАКОНЧИЛИСЬ!";
+            let winMsg = isWin ? (cfg.winT || "ПОБЕДА!") : (customMsg || "КОНЕЦ ИГРЫ!");
             if (cfg.gameType === 'team' && teams.length > 0) {
                 const winner = [...teams].sort((a,b) => b.score - a.score)[0];
                 winMsg = `ПОБЕДИЛА КОМАНДА: ${winner.name.toUpperCase()}!`;
