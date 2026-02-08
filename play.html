@@ -13,7 +13,7 @@
         }
         .bg-overlay { position: fixed; top:0; left:0; right:0; bottom:0; backdrop-filter: blur(var(--blur)); z-index: -1; }
         .neon-text { text-shadow: 0 0 15px var(--text-color); }
-        .neon-border { box-shadow: 0 0 15px var(--accent); border-color: var(--accent) !important; }
+        
         #startScreen {
             background: rgba(10, 25, 47, 0.95); border: 2px solid var(--accent);
             border-radius: 20px; padding: 40px; text-align: center; max-width: 80%;
@@ -21,35 +21,28 @@
         }
         #gameScreen { display: none; flex-direction: column; align-items: center; justify-content: flex-start; width: 100%; height: 100%; padding-top: 20px; }
         #statBar { margin-bottom: 20px; font-weight: bold; font-size: 1.2rem; text-align: center; }
+        
         .grid-wrapper { 
             display: flex; justify-content: center; align-items: center;
-            transform: scale(var(--scale)); 
-            transform-origin: top center;
+            transform: scale(var(--scale)); transform-origin: top center;
             flex-grow: 1; width: 100%;
         }
         .grid-container { display: grid; gap: 10px; padding: 20px; background: rgba(0, 0, 0, 0.3); border: 2px solid var(--accent); border-radius: 15px; }
         .cell { width: 80px; height: 80px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; }
         .cell img { width: 80%; height: 80%; object-fit: contain; }
         .header-cell { border: none; background: none; font-weight: bold; color: var(--text-color); cursor: default; }
+        
         button#startBtn { background: var(--accent); color: #0a192f; border: none; padding: 15px 40px; font-size: 1.2rem; font-weight: bold; border-radius: 10px; cursor: pointer; margin-top: 20px; }
-        #winScreen { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:rgba(10,25,47,0.95); border:3px solid var(--accent); padding:30px; border-radius:20px; text-align:center; z-index:1000; box-shadow:0 0 30px var(--accent); }
-        #winScreen img { max-width: 200px; margin-top: 15px; border-radius: 10px; }
-        .turn-indicator { color: var(--accent); margin-bottom: 10px; font-size: 1.1rem; }
+        
+        /* Модальное окно */
+        #modalOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:2000; align-items:center; justify-content:center; }
+        .modal-content { background:#0a192f; border:3px solid var(--accent); padding:30px; border-radius:20px; text-align:center; width:350px; box-shadow:0 0 20px var(--accent); }
+        .modal-content input { width:100%; padding:12px; margin:20px 0; border-radius:10px; border:2px solid var(--accent); background:#000; color:#fff; text-align:center; font-size:1.1rem; box-sizing:border-box; }
+        .modal-content button { background:var(--accent); color:#0a192f; border:none; padding:12px 30px; border-radius:10px; font-weight:bold; cursor:pointer; width:100%; }
 
-        #modalOverlay { 
-            display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:2000; align-items:center; justify-content:center; 
-        }
-        .modal-content { 
-            background:#0a192f; border:3px solid var(--accent); padding:30px; border-radius:20px; text-align:center; width:350px; box-shadow:0 0 20px var(--accent); 
-        }
-        .modal-content input { 
-            width:100%; padding:12px; margin:20px 0; border-radius:10px; border:2px solid var(--accent); background:#000; color:#fff; text-align:center; font-size:1.1rem; box-sizing:border-box; 
-        }
-        .modal-content button { 
-            background:var(--accent); color:#0a192f; border:none; padding:12px 30px; border-radius:10px; font-weight:bold; cursor:pointer; width:100%; font-size:1rem; 
-        }
-
-        .shake { animation: shake 0.4s; border-color: #ff4d4d !important; background: rgba(255, 77, 77, 0.2) !important; }
+        #winScreen { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:rgba(10,25,47,0.95); border:3px solid var(--accent); padding:30px; border-radius:20px; text-align:center; z-index:1000; }
+        
+        .shake { animation: shake 0.4s; border-color: #ff4d4d !important; }
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-10px); }
@@ -66,7 +59,7 @@
             <button onclick="checkModalAnswer()">ВЫСТРЕЛИТЬ!</button>
         </div>
     </div>
-    
+
     <div class="bg-overlay"></div>
     <div id="startScreen">
         <h1 id="titleDisp">МОРСКОЙ БОЙ</h1>
@@ -75,7 +68,7 @@
     </div>
 
     <div id="gameScreen">
-        <div id="turnInfo" class="turn-indicator"></div>
+        <div id="turnInfo" style="color:var(--accent); margin-bottom:10px;"></div>
         <div id="statBar"></div>
         <div class="grid-wrapper"><div id="grid" class="grid-container"></div></div>
     </div>
@@ -88,9 +81,13 @@
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        let cfg = { t: "Sea Battle", x: [], y: [], c: "#00d4ff", s: 3, zoom: 1, neonT: true, neonB: true, fColor: "#ffffff", bg: "", blur: 0, winT: "ПОБЕДА!", winI: "", mode: "classic", answers: "", challengeLimit: 30, challengeType: "time", gameType: "solo", teamCount: 2 };
+        let cfg = { t: "Sea Battle", x: [], y: [], c: "#00d4ff", s: 3, zoom: 1, fColor: "#ffffff", bg: "", blur: 0, winT: "ПОБЕДА!", winI: "", mode: "classic", answers: "", challengeLimit: 30, challengeType: "time", gameType: "solo", teamCount: 2 };
         
-        if (urlParams.has('data')) { try { cfg = JSON.parse(decodeURIComponent(escape(atob(urlParams.get('data'))))); } catch(e) {} }
+        if (urlParams.has('data')) {
+            try {
+                cfg = JSON.parse(decodeURIComponent(escape(atob(urlParams.get('data')))));
+            } catch(e) { console.error("Ошибка декодирования данных", e); }
+        }
 
         const root = document.documentElement;
         root.style.setProperty('--accent', cfg.c);
@@ -112,25 +109,18 @@
             }
         }
 
-        let found = 0;
-        let timeLeft = cfg.challengeLimit;
-        let movesLeft = cfg.challengeLimit;
-        let currentTeam = 0;
-        let teams = [];
-        let timerInterval;
-        let gameOver = false;
-        const targets = new Set();
-        const openedCells = new Set();
+        let found = 0, currentTeam = 0, teams = [], timerInterval, gameOver = false;
+        let timeLeft = cfg.challengeLimit, movesLeft = cfg.challengeLimit;
+        const targets = new Set(), openedCells = new Set();
         const ansMap = cfg.answers ? cfg.answers.split('\n').map(a => a.trim().toLowerCase()) : [];
-        let currentAttemptIdx = null;
-        let currentAttemptCell = null;
+        let currentAttemptIdx = null, currentAttemptCell = null;
 
         function startGame() {
             if (cfg.gameType === 'team') {
                 teams = [];
                 for(let i=1; i<=cfg.teamCount; i++) {
-                    const input = document.getElementById(`tName${i}`);
-                    teams.push({ name: input ? input.value : `Команда ${i}`, score: 0 });
+                    const el = document.getElementById(`tName${i}`);
+                    teams.push({ name: el ? el.value : `Команда ${i}`, score: 0 });
                 }
             }
             document.getElementById('startScreen').style.display = 'none';
@@ -148,13 +138,9 @@
 
         function updateStats() {
             let text = `Найдено: ${found} / ${cfg.s}`;
-            if (cfg.mode === 'challenge') {
-                text += cfg.challengeType === 'time' ? ` | Время: ${timeLeft}с` : ` | Ходов: ${movesLeft}`;
-            }
+            if (cfg.mode === 'challenge') text += cfg.challengeType === 'time' ? ` | Время: ${timeLeft}с` : ` | Ходов: ${movesLeft}`;
             document.getElementById('statBar').innerText = text;
-            if (cfg.gameType === 'team' && teams.length > 0) {
-                document.getElementById('turnInfo').innerText = `Ход: ${teams[currentTeam].name}`;
-            }
+            if (cfg.gameType === 'team' && teams.length > 0) document.getElementById('turnInfo').innerText = `Ход: ${teams[currentTeam].name}`;
         }
 
         function initGrid() {
@@ -162,7 +148,6 @@
             grid.innerHTML = '';
             grid.style.gridTemplateColumns = `repeat(${cfg.x.length + 1}, auto)`;
             const total = cfg.x.length * cfg.y.length;
-            targets.clear();
             while(targets.size < Math.min(cfg.s, total)) targets.add(Math.floor(Math.random() * total));
 
             for (let r = 0; r <= cfg.y.length; r++) {
@@ -170,10 +155,8 @@
                     const cell = document.createElement('div');
                     cell.className = 'cell';
                     const val = (r === 0) ? cfg.x[c-1] : (c === 0 ? cfg.y[r-1] : null);
-                    
-                    if (r === 0 && c === 0) {
-                        cell.className += ' header-cell';
-                    } else if (val !== null) {
+                    if (r === 0 && c === 0) cell.className += ' header-cell';
+                    else if (val !== null) {
                         cell.className += ' header-cell';
                         if (val.startsWith('http')) cell.innerHTML = `<img src="${val}">`;
                         else cell.innerText = val;
@@ -188,37 +171,42 @@
 
         function handleMove(idx, cell) {
             if (gameOver || openedCells.has(idx)) return;
-
             if (cfg.mode === 'writing') {
-                currentAttemptIdx = idx;
-                currentAttemptCell = cell;
+                currentAttemptIdx = idx; currentAttemptCell = cell;
                 document.getElementById('modalOverlay').style.display = 'flex';
                 document.getElementById('userAnswer').value = '';
                 document.getElementById('userAnswer').focus();
-                
-                const r = Math.floor(idx / cfg.x.length);
-                const c = idx % cfg.x.length;
+                const r = Math.floor(idx / cfg.x.length), c = idx % cfg.x.length;
                 document.getElementById('modalTask').innerText = `${cfg.y[r]} + ${cfg.x[c]}`;
-                return; 
+            } else {
+                processCell(idx, cell);
+                finalizeTurn();
             }
-            processCell(idx, cell);
-            finalizeTurn();
         }
 
         function checkModalAnswer() {
-            const inp = document.getElementById('userAnswer');
-            const box = document.getElementById('modalBox');
-            const val = inp.value.trim().toLowerCase();
-            const correct = (ansMap[currentAttemptIdx] || "").toLowerCase();
-
+            const val = document.getElementById('userAnswer').value.trim().toLowerCase();
+            const correct = ansMap[currentAttemptIdx] || "";
             if (val === correct) {
                 document.getElementById('modalOverlay').style.display = 'none';
                 processCell(currentAttemptIdx, currentAttemptCell);
                 finalizeTurn();
             } else {
+                const box = document.getElementById('modalBox');
                 box.classList.add('shake');
-                new Audio('https://www.soundjay.com/buttons/sounds/beep-05.mp3').play().catch(()=>{});
                 setTimeout(() => box.classList.remove('shake'), 400);
+            }
+        }
+
+        function processCell(idx, cell) {
+            openedCells.add(idx);
+            if (targets.has(idx)) {
+                cell.innerHTML = cfg.targetImg ? `<img src="${cfg.targetImg}">` : "🚢";
+                found++;
+                if (cfg.gameType === 'team' && teams.length > 0) teams[currentTeam].score++;
+                if (found >= cfg.s) endGame(true);
+            } else {
+                cell.innerHTML = "✕"; cell.style.opacity = "0.4";
             }
         }
 
@@ -226,3 +214,32 @@
             if (cfg.mode === 'challenge' && cfg.challengeType === 'moves') {
                 movesLeft--;
                 if (movesLeft <= 0 && found < cfg.s) endGame(false);
+            }
+            if (!gameOver && cfg.mode === 'computer') {
+                setTimeout(computerMove, 600);
+            } else if (cfg.gameType === 'team') {
+                currentTeam = (currentTeam + 1) % teams.length;
+            }
+            updateStats();
+        }
+
+        function computerMove() {
+            const total = cfg.x.length * cfg.y.length;
+            let randIdx;
+            do { randIdx = Math.floor(Math.random() * total); } while (openedCells.has(randIdx));
+            const cells = document.querySelectorAll('.cell:not(.header-cell)');
+            processCell(randIdx, cells[randIdx]);
+            finalizeTurn();
+        }
+
+        function endGame(isWin) {
+            gameOver = true;
+            clearInterval(timerInterval);
+            const winMsg = isWin ? (cfg.winT || "ПОБЕДА!") : "ВРЕМЯ/ХОДЫ ВЫШЛИ!";
+            document.getElementById('winText').innerText = winMsg;
+            if(cfg.winI) document.getElementById('winImgContainer').innerHTML = `<img src="${cfg.winI}" style="max-width:200px; margin-top:15px; border-radius:10px;">`;
+            document.getElementById('winScreen').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
