@@ -304,14 +304,21 @@ function finalizeTurn() {
             }
         }
 
-        function computerMove() {
-            const total = cfg.x.length * cfg.y.length;
-            let randIdx;
-            do { randIdx = Math.floor(Math.random() * total); } while (openedCells.has(randIdx));
-            const cells = document.querySelectorAll('.cell:not(.header-cell)');
-            processCell(randIdx, cells[randIdx]);
-            updateStats();
-        }
+     function computerMove() {
+    const total = cfg.x.length * cfg.y.length;
+    let randIdx;
+    // Компьютер ищет случайную еще не открытую клетку
+    do { randIdx = Math.floor(Math.random() * total); } while (openedCells.has(randIdx));
+    
+    // Находим все игровые клетки (пропуская заголовки)
+    const cells = document.querySelectorAll('.cell:not(.header-cell)');
+    
+    // Делаем выстрел
+    processCell(randIdx, cells[randIdx]);
+    
+    // Завершаем ход (это обновит статистику и вернет ход игроку)
+    finalizeTurn(); 
+}
 
         function endGame(isWin) {
             gameOver = true;
