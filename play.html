@@ -98,6 +98,16 @@
     </style>
 </head>
 <body>
+    <div id="modalOverlay">
+        <div class="modal-content" id="modalBox">
+            <h3 id="modalPrompt">Составь предложение</h3>
+            <div id="modalTask" style="color:var(--accent); font-weight:bold; font-size:1.2rem; margin-bottom:10px;"></div>
+            <input type="text" id="userAnswer" placeholder="Напишите здесь..." autocomplete="off">
+            <button onclick="checkModalAnswer()">ВЫСТРЕЛИТЬ!</button>
+        </div>
+    </div>
+    <div class="bg-overlay"></div>
+    
     <div class="bg-overlay"></div>
     <div id="startScreen">
         <h1 id="titleDisp">МОРСКОЙ БОЙ</h1>
@@ -151,7 +161,10 @@
         let gameOver = false;
         const targets = new Set();
         const openedCells = new Set();
-        const ansMap = cfg.answers ? cfg.answers.split(',').map(a => a.trim().toLowerCase()) : [];
+        // Теперь разделяем не по запятой, а по переносу строки \n
+const ansMap = cfg.answers ? cfg.answers.split('\n').map(a => a.trim().toLowerCase()) : [];
+let currentAttemptIdx = null;
+let currentAttemptCell = null;
 
         function startGame() {
             if (cfg.gameType === 'team') {
@@ -208,18 +221,60 @@
             }
         }
 
-        async function handleMove(idx, cell) {
-            if (gameOver || openedCells.has(idx)) return;
+    function handleMove(idx, cell) {
+    if (gameOver || openedCells.has(idx)) return;
 
-        if (cfg.mode === 'writing') {
-    const userAns = prompt("Введите правильный ответ:");
-    // Находим правильный ответ специально для этой клетки по её номеру (idx)
-    const correctAnswer = ansMap[idx] ? ansMap[idx].trim().toLowerCase() : "";
-    
-    if (!userAns || userAns.trim().toLowerCase() !== correctAnswer) {
-        alert("Неверно! Правильный ответ для этой клетки другой.");
-        return;
+    if (cfg.mode === 'writing') {
+        currentAttemptIdx = idx;
+        currentAttemptCell = cell;
+        
+        // Показываем модальное окно
+        document.getElementById('modalOverlay').style.display = 'flex';
+        document.getElementById('userAnswer').value = '';
+        document.getElementById('userAnswer').focus();
+        
+        // Выводим подсказку, что с чем соединить
+        const r = Math.floor(idx / cfg.x.length);
+        const c = idx % cfg.x.length;
+        document.getElementById('modalTask').innerText = `${cfg.y[r]} + ${cfg.x[c]}`;
+        return; 
     }
+    processCell(idx, cell);
+    finalizeTurn();
+}
+
+// Новая функция проверки ответа в красивом окне
+function checkModalAnswer() {
+    const inp = document.getElementById('userAnswer');
+    const box = document.getElementById('modalBox');
+    const val = inp.value.trim().toLowerCase();
+    const correct = ansMap[currentAttemptIdx] || "";
+
+    if (val === correct) {
+        document.getElementById('modalOverlay').style.display = 'none';
+        processCell(currentAttemptIdx, currentAttemptCell);
+        finalizeTurn();
+    } else {
+        // Эффект ошибки (тряска и звук)
+        box.classList.add('shake');
+        const audio = new Audio('https://www.soundjay.com/buttons/sounds/beep-05.mp3');
+        audio.play();
+        setTimeout(() => box.classList.remove('shake'), 400);
+    }
+}
+
+// Логика завершения хода
+function finalizeTurn() {
+    if (cfg.mode === 'challenge' && cfg.challengeType === 'moves') {
+        movesLeft--;
+        if (movesLeft <= 0 && found < cfg.s) endGame(false);
+    }
+    if (!gameOver && cfg.mode === 'computer') {
+        setTimeout(computerMove, 600);
+    } else if (cfg.gameType === 'team') {
+        currentTeam = (currentTeam + 1) % teams.length;
+    }
+    updateStats();
 }
 
             processCell(idx, cell);
