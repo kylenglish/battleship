@@ -29,10 +29,13 @@
         <option value="computer">Against computer</option>
     </select>
 
-    <div id="writingOpt" class="mode-settings" style="display:none">
-        <label>Правильные ответы (через запятую):</label>
-        <textarea id="answers" oninput="update()">Apple, Banana, Cat</textarea>
-    </div>
+  <div id="writingOpt" class="mode-settings" style="display:none">
+    <label>Матрица ответов (через запятую):</label>
+    <textarea id="answers" oninput="update()" placeholder="Ответ 1, Ответ 2, Ответ 3... (заполняйте слева направо по рядам)"></textarea>
+    <small style="display:block; margin-top:5px; font-size:0.7rem; color: #888;">
+        Введите ответы по порядку: сначала для всего первого ряда (слева направо), затем для второго и т.д.
+    </small>
+</div>
 
     <div id="challengeOpt" class="mode-settings" style="display:none">
         <label>Тип ограничения:</label>
