@@ -20,38 +20,34 @@
             z-index: 100; transition: 0.3s;
         }
         #gameScreen { display: none; flex-direction: column; align-items: center; justify-content: flex-start; width: 100%; height: 100%; padding-top: 20px; }
-        
-        #statBar { margin-bottom: 20px; font-weight: bold; font-size: 1.2rem; }
-
+        #statBar { margin-bottom: 20px; font-weight: bold; font-size: 1.2rem; text-align: center; }
         .grid-wrapper { 
             display: flex; justify-content: center; align-items: center;
             transform: scale(var(--scale)); 
             transform-origin: top center;
-            flex-grow: 1;
-            width: 100%;
+            flex-grow: 1; width: 100%;
         }
-        
         .grid-container { display: grid; gap: 10px; padding: 20px; background: rgba(0, 0, 0, 0.3); border: 2px solid var(--accent); border-radius: 15px; }
-        .cell { width: 80px; height: 80px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .cell { width: 80px; height: 80px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; }
         .cell img { width: 80%; height: 80%; object-fit: contain; }
         .header-cell { border: none; background: none; font-weight: bold; color: var(--text-color); cursor: default; }
         button#startBtn { background: var(--accent); color: #0a192f; border: none; padding: 15px 40px; font-size: 1.2rem; font-weight: bold; border-radius: 10px; cursor: pointer; margin-top: 20px; }
         #winScreen { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:rgba(10,25,47,0.95); border:3px solid var(--accent); padding:30px; border-radius:20px; text-align:center; z-index:1000; box-shadow:0 0 30px var(--accent); }
         #winScreen img { max-width: 200px; margin-top: 15px; border-radius: 10px; }
+        .turn-indicator { color: var(--accent); margin-bottom: 10px; font-size: 1.1rem; }
     </style>
 </head>
 <body>
     <div class="bg-overlay"></div>
     <div id="startScreen">
         <h1 id="titleDisp">МОРСКОЙ БОЙ</h1>
-        <div id="instr" style="text-align:left; line-height:1.6; margin: 20px 0;">
-            • Нажимай на клетки, чтобы найти цели.<br>• Составляй предложения для выстрела.<br>• Найди все скрытые объекты для победы!
-        </div>
+        <div id="teamSetup" style="display:none; margin-bottom:20px;"></div>
         <button id="startBtn" onclick="startGame()">ИГРАТЬ</button>
     </div>
 
     <div id="gameScreen">
-        <div id="statBar">Найденные цели: 0 / 0</div>
+        <div id="turnInfo" class="turn-indicator"></div>
+        <div id="statBar"></div>
         <div class="grid-wrapper"><div id="grid" class="grid-container"></div></div>
     </div>
 
@@ -63,7 +59,8 @@
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        let cfg = { t: "Sea Battle", x: [], y: [], c: "#00d4ff", s: 3, zoom: 1, neonT: true, neonB: true, fColor: "#ffffff", bg: "", blur: 0, winT: "ПОБЕДА!", winI: "" };
+        let cfg = { t: "Sea Battle", x: [], y: [], c: "#00d4ff", s: 3, zoom: 1, neonT: true, neonB: true, fColor: "#ffffff", bg: "", blur: 0, winT: "ПОБЕДА!", winI: "", mode: "classic", answers: "", challengeLimit: 30, challengeType: "time", gameType: "solo", teamCount: 2 };
+        
         if (urlParams.has('data')) { try { cfg = JSON.parse(decodeURIComponent(escape(atob(urlParams.get('data'))))); } catch(e) {} }
 
         const root = document.documentElement;
@@ -76,57 +73,138 @@
         else if (cfg.bg) { document.body.style.background = cfg.bg; }
 
         document.getElementById('titleDisp').innerText = cfg.t;
-        if (cfg.neonT) document.getElementById('titleDisp').classList.add('neon-text');
-        if (cfg.neonB) document.getElementById('startScreen').classList.add('neon-border');
-
-        function startGame() {
-            document.getElementById('startScreen').style.display = 'none';
-            document.getElementById('gameScreen').style.display = 'flex';
-        }
-
-        if (urlParams.has('preview')) startGame();
-
-        const grid = document.getElementById('grid');
-        grid.style.gridTemplateColumns = `repeat(${cfg.x.length + 1}, auto)`;
-        if (cfg.neonB) grid.classList.add('neon-border');
-        document.getElementById('statBar').innerText = `Найденные цели: 0 / ${cfg.s}`;
-        if (cfg.neonT) document.getElementById('statBar').classList.add('neon-text');
-
-        let found = 0;
-        const targets = new Set();
-        const total = cfg.x.length * cfg.y.length;
-        while(targets.size < Math.min(cfg.s, total)) targets.add(Math.floor(Math.random() * total));
-
-        for (let r = 0; r <= cfg.y.length; r++) {
-            for (let c = 0; c <= cfg.x.length; c++) {
-                const cell = document.createElement('div');
-                cell.className = 'cell';
-                const val = (r === 0) ? cfg.x[c-1] : (c === 0 ? cfg.y[r-1] : null);
-                if (r === 0 && c === 0) cell.className += ' header-cell';
-                else if (val !== null) {
-                    cell.className += ' header-cell';
-                    if (cfg.neonT) cell.classList.add('neon-text');
-                    if (val.startsWith('http')) cell.innerHTML = `<img src="${val}">`;
-                    else cell.innerText = val;
-                } else {
-                    const idx = (r-1) * cfg.x.length + (c-1);
-                    cell.onclick = () => {
-                        if (cell.innerHTML || cell.classList.contains('miss')) return;
-                        if (targets.has(idx)) {
-                            cell.innerHTML = cfg.targetImg ? `<img src="${cfg.targetImg}">` : "🚢";
-                            if (cfg.neonB) cell.classList.add('neon-border');
-                            found++;
-                            document.getElementById('statBar').innerText = `Найденные цели: ${found} / ${cfg.s}`;
-                            if (found >= cfg.s) showWin();
-                        } else { cell.innerHTML = "✕"; cell.style.opacity = "0.4"; }
-                    };
-                }
-                grid.appendChild(cell);
+        if (cfg.gameType === 'team') {
+            const setup = document.getElementById('teamSetup');
+            setup.style.display = 'block';
+            setup.innerHTML = '<p>Введите названия команд:</p>';
+            for(let i=1; i<=cfg.teamCount; i++) {
+                setup.innerHTML += `<input type="text" id="tName${i}" value="Команда ${i}" style="margin:5px; padding:5px; border-radius:5px; border:1px solid var(--accent); background:#000; color:#fff;"><br>`;
             }
         }
-        function showWin() {
+
+        let found = 0;
+        let timeLeft = cfg.challengeLimit;
+        let movesLeft = cfg.challengeLimit;
+        let currentTeam = 0;
+        let teams = [];
+        let timerInterval;
+        let gameOver = false;
+        const targets = new Set();
+        const openedCells = new Set();
+        const ansMap = cfg.answers ? cfg.answers.split(',').map(a => a.trim().toLowerCase()) : [];
+
+        function startGame() {
+            if (cfg.gameType === 'team') {
+                for(let i=1; i<=cfg.teamCount; i++) {
+                    teams.push({ name: document.getElementById(`tName${i}`).value, score: 0 });
+                }
+            }
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'flex';
+            initGrid();
+            if (cfg.mode === 'challenge' && cfg.challengeType === 'time') {
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    updateStats();
+                    if (timeLeft <= 0) endGame(false);
+                }, 1000);
+            }
+            updateStats();
+        }
+
+        function updateStats() {
+            let text = `Найдено: ${found} / ${cfg.s}`;
+            if (cfg.mode === 'challenge') {
+                text += cfg.challengeType === 'time' ? ` | Время: ${timeLeft}с` : ` | Ходов: ${movesLeft}`;
+            }
+            document.getElementById('statBar').innerText = text;
+            if (cfg.gameType === 'team') {
+                document.getElementById('turnInfo').innerText = `Ход: ${teams[currentTeam].name}`;
+            }
+        }
+
+        function initGrid() {
+            const grid = document.getElementById('grid');
+            grid.style.gridTemplateColumns = `repeat(${cfg.x.length + 1}, auto)`;
+            const total = cfg.x.length * cfg.y.length;
+            while(targets.size < Math.min(cfg.s, total)) targets.add(Math.floor(Math.random() * total));
+
+            for (let r = 0; r <= cfg.y.length; r++) {
+                for (let c = 0; c <= cfg.x.length; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    const val = (r === 0) ? cfg.x[c-1] : (c === 0 ? cfg.y[r-1] : null);
+                    if (r === 0 && c === 0) cell.className += ' header-cell';
+                    else if (val !== null) {
+                        cell.className += ' header-cell';
+                        if (val.startsWith('http')) cell.innerHTML = `<img src="${val}">`;
+                        else cell.innerText = val;
+                    } else {
+                        const idx = (r-1) * cfg.x.length + (c-1);
+                        cell.onclick = () => handleMove(idx, cell);
+                    }
+                    grid.appendChild(cell);
+                }
+            }
+        }
+
+        async function handleMove(idx, cell) {
+            if (gameOver || openedCells.has(idx)) return;
+
+            if (cfg.mode === 'writing') {
+                const userAns = prompt("Введите правильный ответ:");
+                if (!userAns || !ansMap.includes(userAns.trim().toLowerCase())) {
+                    alert("Неверно!");
+                    return;
+                }
+            }
+
+            processCell(idx, cell);
+
+            if (cfg.mode === 'challenge' && cfg.challengeType === 'moves') {
+                movesLeft--;
+                if (movesLeft <= 0 && found < cfg.s) endGame(false);
+            }
+
+            if (!gameOver && cfg.mode === 'computer') {
+                setTimeout(computerMove, 600);
+            } else if (cfg.gameType === 'team') {
+                currentTeam = (currentTeam + 1) % teams.length;
+            }
+            updateStats();
+        }
+
+        function processCell(idx, cell) {
+            openedCells.add(idx);
+            if (targets.has(idx)) {
+                cell.innerHTML = cfg.targetImg ? `<img src="${cfg.targetImg}">` : "🚢";
+                found++;
+                if (cfg.gameType === 'team') teams[currentTeam].score++;
+                if (found >= cfg.s) endGame(true);
+            } else {
+                cell.innerHTML = "✕"; cell.style.opacity = "0.4";
+            }
+        }
+
+        function computerMove() {
+            const total = cfg.x.length * cfg.y.length;
+            let randIdx;
+            do { randIdx = Math.floor(Math.random() * total); } while (openedCells.has(randIdx));
+            const cells = document.querySelectorAll('.cell:not(.header-cell)');
+            processCell(randIdx, cells[randIdx]);
+            updateStats();
+        }
+
+        function endGame(isWin) {
+            gameOver = true;
+            clearInterval(timerInterval);
             const ws = document.getElementById('winScreen');
-            document.getElementById('winText').innerText = cfg.winT || "ПОБЕДА!";
+            let winMsg = isWin ? (cfg.winT || "ПОБЕДА!") : "ВРЕМЯ/ХОДЫ ВЫШЛИ!";
+            if (cfg.gameType === 'team') {
+                const winner = [...teams].sort((a,b) => b.score - a.score)[0];
+                winMsg = `Победила команда: ${winner.name}!`;
+            }
+            document.getElementById('winText').innerText = winMsg;
             if(cfg.winI) document.getElementById('winImgContainer').innerHTML = `<img src="${cfg.winI}">`;
             ws.style.display = 'block';
         }
