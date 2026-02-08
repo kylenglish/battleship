@@ -151,13 +151,16 @@
         async function handleMove(idx, cell) {
             if (gameOver || openedCells.has(idx)) return;
 
-            if (cfg.mode === 'writing') {
-                const userAns = prompt("Введите правильный ответ:");
-                if (!userAns || !ansMap.includes(userAns.trim().toLowerCase())) {
-                    alert("Неверно!");
-                    return;
-                }
-            }
+        if (cfg.mode === 'writing') {
+    const userAns = prompt("Введите правильный ответ:");
+    // Находим правильный ответ специально для этой клетки по её номеру (idx)
+    const correctAnswer = ansMap[idx] ? ansMap[idx].trim().toLowerCase() : "";
+    
+    if (!userAns || userAns.trim().toLowerCase() !== correctAnswer) {
+        alert("Неверно! Правильный ответ для этой клетки другой.");
+        return;
+    }
+}
 
             processCell(idx, cell);
 
