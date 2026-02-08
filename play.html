@@ -166,12 +166,34 @@ const ansMap = cfg.answers ? cfg.answers.split('\n').map(a => a.trim().toLowerCa
 let currentAttemptIdx = null;
 let currentAttemptCell = null;
 
-        function startGame() {
-            if (cfg.gameType === 'team') {
-                for(let i=1; i<=cfg.teamCount; i++) {
-                    teams.push({ name: document.getElementById(`tName${i}`).value, score: 0 });
-                }
-            }
+       function startGame() {
+    // Проверяем, есть ли вообще команды, прежде чем собирать их имена
+    if (cfg.gameType === 'team') {
+        teams = []; // Очищаем массив перед заполнением
+        for(let i=1; i<=cfg.teamCount; i++) {
+            const input = document.getElementById(`tName${i}`);
+            const name = input ? input.value : `Команда ${i}`;
+            teams.push({ name: name, score: 0 });
+        }
+    }
+    
+    // Переключаем экраны
+    document.getElementById('startScreen').style.display = 'none';
+    document.getElementById('gameScreen').style.display = 'flex';
+    
+    // Инициализируем сетку
+    initGrid();
+    
+    // Запускаем таймер, если нужно
+    if (cfg.mode === 'challenge' && cfg.challengeType === 'time') {
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            updateStats();
+            if (timeLeft <= 0) endGame(false);
+        }, 1000);
+    }
+    updateStats();
+}
             document.getElementById('startScreen').style.display = 'none';
             document.getElementById('gameScreen').style.display = 'flex';
             initGrid();
