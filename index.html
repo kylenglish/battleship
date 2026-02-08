@@ -11,103 +11,124 @@
         label { display: block; margin-top: 15px; font-size: 0.8rem; color: #aaa; }
         input, select, textarea { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #333; background: #1a2a3a; color: white; margin-top: 5px; box-sizing: border-box; }
         .row { display: flex; gap: 10px; }
-        .check-group { background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; margin-top: 10px; }
-        .check-row { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
-        .check-row input { width: auto; margin: 0; }
         button { width: 100%; padding: 12px; background: var(--main); border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px; }
         iframe { width: 100%; height: 100%; border: none; }
-        #copyStatus { color: #00ff00; font-size: 0.8rem; text-align: center; margin-top: 5px; display: none; }
+        .mode-settings { background: rgba(0,212,255,0.1); padding: 10px; border-radius: 8px; margin-top: 10px; border-left: 3px solid var(--main); }
     </style>
 </head>
 <body>
 
 <div class="panel">
     <h2 style="color:var(--main); text-align:center; margin-top:0;">Редактор "Морской бой"</h2>
+    
+    <label>Режим игры:</label>
+    <select id="mode" onchange="toggleModes(); update()">
+        <option value="classic">Classic (устный)</option>
+        <option value="writing">Writing (письменный)</option>
+        <option value="challenge">Challenge (на время/ходы)</option>
+        <option value="computer">Against computer</option>
+    </select>
+
+    <div id="writingOpt" class="mode-settings" style="display:none">
+        <label>Правильные ответы (через запятую):</label>
+        <textarea id="answers" oninput="update()">Apple, Banana, Cat</textarea>
+    </div>
+
+    <div id="challengeOpt" class="mode-settings" style="display:none">
+        <label>Тип ограничения:</label>
+        <select id="challengeType" onchange="update()">
+            <option value="time">Таймер (секунды)</option>
+            <option value="moves">Количество ходов</option>
+        </select>
+        <label>Лимит:</label>
+        <input type="number" id="challengeLimit" value="30" oninput="update()">
+    </div>
+
+    <label>Вид игры:</label>
+    <select id="gameType" onchange="toggleGameType(); update()">
+        <option value="solo">Индивидуальный</option>
+        <option value="team">Командный</option>
+    </select>
+
+    <div id="teamOpt" class="mode-settings" style="display:none">
+        <label>Количество команд (2-5):</label>
+        <input type="number" id="teamCount" min="2" max="5" value="2" oninput="update()">
+    </div>
+
+    <hr style="margin-top:20px; border-color:#333;">
+
     <label>Заголовок игры:</label>
     <input type="text" id="t" value="МОРСКОЙ БОЙ" oninput="update()">
     
     <div class="row">
-        <div style="flex:1"><label>Цвет обводки:</label><input type="color" id="c" value="#00d4ff" oninput="update()"></div>
-        <div style="flex:1"><label>Цвет текста:</label><input type="color" id="fColor" value="#ffffff" oninput="update()"></div>
+        <div style="flex:1"><label>Цвет:</label><input type="color" id="c" value="#00d4ff" oninput="update()"></div>
+        <div style="flex:1"><label>Текст:</label><input type="color" id="fColor" value="#ffffff" oninput="update()"></div>
     </div>
 
-    <div class="check-group">
-        <div class="check-row"><input type="checkbox" id="neonT" checked onchange="update()"><label style="margin:0">неон для текста</label></div>
-        <div class="check-row"><input type="checkbox" id="neonB" checked onchange="update()"><label style="margin:0">неон для обводки</label></div>
-    </div>
-
-    <label>Масштаб поля:</label>
-    <input type="range" id="zoom" min="0.4" max="1.5" step="0.05" value="1" oninput="update(true)">
+    <label>Слова по X и Y (через запятую):</label>
+    <textarea id="x" rows="1" oninput="update()">I, You, She, We</textarea>
+    <textarea id="y" rows="1" oninput="update()">play, go, sleep</textarea>
     
-    <label>Настройка фона (URL, цвет или градиент):</label>
-    <input type="text" id="bg" placeholder="URL, #цвет или linear-gradient(...)" oninput="update()">
-    
-    <label>Размытие фона:</label>
-    <input type="range" id="blur" min="0" max="20" step="1" value="0" oninput="update()">
-    
-    <label>Слова или url картинки по горизонтали (через запятую):</label>
-    <textarea id="x" rows="2" oninput="update()">I, You, She, We, They</textarea>
-    
-    <label>Слова или url картинки по вертикали (через запятую):</label>
-    <textarea id="y" rows="2" oninput="update()">play, go, sleep</textarea>
-    
-    <label>Кол-во объектов и URL картинки объекта (пусто = корабли):</label>
+    <label>Кол-во объектов и URL картинки:</label>
     <div class="row">
         <input type="number" id="s" value="3" style="width:60px" oninput="update()">
-        <input type="text" id="targetImg" placeholder="URL картинки объекта" oninput="update()">
+        <input type="text" id="targetImg" placeholder="URL картинки" oninput="update()">
     </div>
     
-    <label>Финальный фидбек (текст и URL фото - при желании):</label>
+    <label>Финальный текст:</label>
     <input type="text" id="winT" value="ПОБЕДА!" oninput="update()">
-    <input type="text" id="winI" placeholder="URL картинки финала" oninput="update()">
-    
-    <button onclick="copyCode()">СКОПИРОВАТЬ КОД ДЛЯ GENIALLY</button>
-    <div id="copyStatus">Код скопирован в буфер обмена!</div>
+
+    <button onclick="copyCode()">СКОПИРОВАТЬ КОД</button>
     <textarea id="resCode" rows="3" style="margin-top:10px; font-size:0.7rem; color:#888;" readonly></textarea>
 </div>
 
 <div class="preview" id="previewContainer"></div>
 
 <script>
+    function toggleModes() {
+        const m = document.getElementById('mode').value;
+        document.getElementById('writingOpt').style.display = m === 'writing' ? 'block' : 'none';
+        document.getElementById('challengeOpt').style.display = m === 'challenge' ? 'block' : 'none';
+    }
+    function toggleGameType() {
+        const t = document.getElementById('gameType').value;
+        document.getElementById('teamOpt').style.display = t === 'team' ? 'block' : 'none';
+    }
+
     function getData() {
         return {
+            mode: document.getElementById('mode').value,
+            answers: document.getElementById('answers').value,
+            challengeType: document.getElementById('challengeType').value,
+            challengeLimit: parseInt(document.getElementById('challengeLimit').value),
+            gameType: document.getElementById('gameType').value,
+            teamCount: parseInt(document.getElementById('teamCount').value),
             t: document.getElementById('t').value,
             x: document.getElementById('x').value.split(',').map(s => s.trim()),
             y: document.getElementById('y').value.split(',').map(s => s.trim()),
             c: document.getElementById('c').value,
             s: parseInt(document.getElementById('s').value),
             targetImg: document.getElementById('targetImg').value,
-            neonT: document.getElementById('neonT').checked,
-            neonB: document.getElementById('neonB').checked,
             fColor: document.getElementById('fColor').value,
-            zoom: document.getElementById('zoom').value,
-            bg: document.getElementById('bg').value,
-            blur: document.getElementById('blur').value,
             winT: document.getElementById('winT').value,
-            winI: document.getElementById('winI').value
+            zoom: 1, neonT: true, neonB: true
         };
     }
+
     function update(isPreviewMode = false) {
         const data = btoa(unescape(encodeURIComponent(JSON.stringify(getData()))));
-        // Используем относительный путь, чтобы не зависеть от домена в редакторе
-        let url = `play.html?data=${data}`;
-        if(isPreviewMode) url += "&preview=true";
+        let url = `play.html?data=${data}${isPreviewMode ? "&preview=true" : ""}`;
         document.getElementById('previewContainer').innerHTML = `<iframe src="${url}"></iframe>`;
-        
-        // Обновляем текстовое поле с кодом сразу
-        const fullUrl = `https://kylenglish.github.io/battleship/play.html?data=${data}`;
-        document.getElementById('resCode').value = `<iframe src="${fullUrl}" width="100%" height="600px" style="border:0;" allowfullscreen="true"></iframe>`;
+        document.getElementById('resCode').value = `<iframe src="https://kylenglish.github.io/battleship/${url}" width="100%" height="600px" style="border:0;"></iframe>`;
     }
+
     function copyCode() {
         const codeArea = document.getElementById('resCode');
         codeArea.select();
         document.execCommand('copy');
-        
-        const status = document.getElementById('copyStatus');
-        status.style.display = 'block';
-        setTimeout(() => { status.style.display = 'none'; }, 2000);
+        alert("Код скопирован!");
     }
-    window.onload = () => update();
+    window.onload = () => { toggleModes(); toggleGameType(); update(); };
 </script>
 </body>
 </html>
